@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/keywarden.iml" filepath="$PROJECT_DIR$/.idea/modules/keywarden.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/keywarden.main.iml" filepath="$PROJECT_DIR$/.idea/modules/keywarden.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/keywarden.test.iml" filepath="$PROJECT_DIR$/.idea/modules/keywarden.test.iml" />
+    </modules>
+  </component>
+</project>

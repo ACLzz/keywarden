@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = "1.4.32"
-    ext.tornadofx_version = "1.7.17"
+    ext.tornadofx_version = "1.7.20"
     ext.junit_version = "5.1.0"
 
     repositories {
@@ -13,8 +13,13 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.junit.platform:junit-platform-gradle-plugin:1.1.0"
-        classpath 'org.openjfx:javafx-plugin:0.0.7'
+        classpath 'org.openjfx:javafx-plugin:0.0.9'
     }
+}
+
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
 }
 
 apply plugin: "kotlin"
@@ -24,11 +29,19 @@ apply plugin: 'org.openjfx.javafxplugin'
 
 javafx {
     version = "12.0.1"
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
+    modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml']
+}
+
+dependencies {
+    implementation "no.tornado:tornadofx:$tornadofx_version"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.6"
+    kotlinOptions.jvmTarget = "15"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "15"
 }
 
 repositories {
@@ -41,14 +54,13 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-
-    compile "no.tornado:tornadofx:$tornadofx_version"
+    implementation "org.json:json:20190722"
 
     testCompile "org.junit.jupiter:junit-jupiter-api:$junit_version"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$junit_version"
 }
 
-mainClassName = "com.example.demo.app.MyApp"
+mainClassName = "app.MyApp"
 
 jar {
     manifest {
@@ -64,3 +76,6 @@ jar {
         exclude "META-INF/*.RSA"
     }
 }
+
+applicationDefaultJvmArgs += "--add-opens=javafx.controls/javafx.scene.control=ALL-UNNAMED"
+applicationDefaultJvmArgs += "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"

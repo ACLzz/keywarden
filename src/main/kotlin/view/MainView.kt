@@ -20,11 +20,13 @@ class MainView : View("Keywarden") {
         visibleProperty().onChange {
             currentWindow?.sizeToScene()
         }
+        val passwordsTableFragment = PasswordsTableFragment()
+
         vbox {
             minWidth = cw
             prefHeight = cfg.h
             this += SearchFragment()
-            this += CollectionsListFragment()
+            this += CollectionsListFragment(passwordsTableFragment::updatePasswords)
         }
 
         vbox {
@@ -34,7 +36,7 @@ class MainView : View("Keywarden") {
                 hgrow = Priority.ALWAYS
             }
             this += ActionBar()
-            this += PasswordsTableFragment()
+            this += passwordsTableFragment
         }
     }
 }

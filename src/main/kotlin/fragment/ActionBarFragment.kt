@@ -4,6 +4,7 @@ import app.EditIcon
 import app.Icon
 import app.PlusIcon
 import app.TrashIcon
+import model.Password
 import tornadofx.*
 
 class ActionBar : Fragment() {

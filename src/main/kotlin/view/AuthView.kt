@@ -2,19 +2,23 @@ package view
 
 import app.Config
 import app.Styles
-import controller.ClientController
+import controller.Client
 import fragment.PopUpFragment
 import javafx.geometry.HPos
 import javafx.geometry.Pos
+import javafx.scene.input.KeyCode
 import javafx.stage.StageStyle
 import tornadofx.*
+import kotlin.reflect.KFunction
+import kotlin.reflect.KFunction1
 
 class AuthView : View("Auth") {
     private val bw = Config.w * Config.k
     private val bh = Config.h * Config.k
     private var login = ""
     private var password = ""
-    private val client: ClientController by inject()
+    private lateinit var focusPassword: () -> Unit
+    private lateinit var pressLogin: () -> Unit
 
     override val root = vbox {
         prefWidth = bw
@@ -53,6 +57,12 @@ class AuthView : View("Auth") {
                     setOnKeyTyped {
                         login = this.text
                     }
+
+                    setOnKeyPressed {
+                        if(it.code.equals(KeyCode.ENTER)){
+                            focusPassword()
+                        }
+                    }
                 }
                 stackpane {
                     val _height = 10.0
@@ -64,6 +74,13 @@ class AuthView : View("Auth") {
                     setOnKeyTyped {
                         password = this.text
                     }
+                    setOnKeyPressed {
+                        if(it.code.equals(KeyCode.ENTER)){
+                            pressLogin()
+                        }
+                    }
+
+                    focusPassword = this::requestFocus
                 }
             }
         }
@@ -80,6 +97,8 @@ class AuthView : View("Auth") {
                 setOnMouseClicked {
                     login()
                 }
+
+                pressLogin = { login() }
             }
 
             pane {
@@ -99,7 +118,7 @@ class AuthView : View("Auth") {
     }
 
     fun login() {
-        val err = client.login(login, password)
+        val err = Client.login(login, password)
         if (err == "") {
             replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds))
         } else {
@@ -108,7 +127,7 @@ class AuthView : View("Auth") {
     }
 
     fun register() {
-        val err = client.register(login, password)
+        val err = Client.register(login, password)
         if (err == "") {
             find<PopUpFragment>(mapOf(PopUpFragment::text to "Registered", PopUpFragment::warning to false)).openModal(stageStyle = StageStyle.UNDECORATED)
         } else {

@@ -1,7 +1,5 @@
 package fragment
 
-import javafx.geometry.Rectangle2D
-import javafx.stage.Screen
 import tornadofx.*
 
 class PopUpFragment : Fragment() {

@@ -1,15 +1,17 @@
 package fragment
 
 import app.Config
-import controller.MainController
+import controller.Client
+import javafx.beans.property.SimpleListProperty
+import javafx.scene.control.cell.TextFieldListCell
+import javafx.stage.StageStyle
 import model.Password
 import tornadofx.*
+import java.awt.TextField
 import kotlin.reflect.KFunction1
 
-class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>) : Fragment() {
-    private val controller: MainController by inject()
-    var collections = controller.fetchCollections()
-    lateinit var currentCollection: String
+class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>, collections: SimpleListProperty<String>) : Fragment() {
+    var currentCollection: String = ""
 
     override val root = vbox {
         label("Collections")
@@ -17,10 +19,20 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
             prefHeight = Config.h
             selectedItem.apply {
                 setOnMouseClicked {
-                    updatePasswords(controller.fetchPasswords(selectedItem.toString()))
+                    val (passwords, err) = Client.fetchPasswords(selectedItem.toString())
+                    if (err != null) {
+                        find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(stageStyle = StageStyle.UNDECORATED)
+                    } else {
+                        updatePasswords(passwords)
+                    }
                 }
             }
+
+            isEditable = true
+            setCellFactory(TextFieldListCell.forListView())
         }
-        currentCollection = collections[0]
+        if (collections.isNotEmpty()) {
+            currentCollection = collections[0]
+        }
     }
 }

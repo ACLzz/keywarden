@@ -1,6 +1,6 @@
 package view
 
-import controller.ConfigController
+import app.Config
 import fragment.ActionBar
 import fragment.CollectionsListFragment
 import fragment.PasswordsTableFragment
@@ -9,9 +9,8 @@ import javafx.scene.layout.Priority
 import tornadofx.*
 
 class MainView : View("Keywarden") {
-    private val cfg: ConfigController by inject()
-    private val bw = cfg.w * cfg.k
-    private val bh = cfg.h * cfg.k
+    private val bw = Config.w * Config.k
+    private val bh = Config.h * Config.k
     private val cw = 280.0
 
     override val root = hbox {
@@ -24,13 +23,13 @@ class MainView : View("Keywarden") {
 
         vbox {
             minWidth = cw
-            prefHeight = cfg.h
+            prefHeight = Config.h
             this += SearchFragment()
             this += CollectionsListFragment(passwordsTableFragment::updatePasswords)
         }
 
         vbox {
-            prefWidth = cfg.w - cw
+            prefWidth = Config.w - cw
             gridpaneConstraints {
                 vgrow = Priority.ALWAYS
                 hgrow = Priority.ALWAYS

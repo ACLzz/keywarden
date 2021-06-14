@@ -54,6 +54,11 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
+    implementation('com.github.kittinunf.fuel:fuel-json:2.3.1') {
+        exclude group: 'org.json', module: 'json'
+    }
+    implementation 'org.json:json:20190722'
 
     testCompile "org.junit.jupiter:junit-jupiter-api:$junit_version"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$junit_version"

@@ -9,6 +9,7 @@ import javax.swing.text.html.StyleSheet
 class Styles : Stylesheet() {
     companion object {
         val heading by cssclass()
+        val button by cssclass()
     }
 
     init {
@@ -16,6 +17,12 @@ class Styles : Stylesheet() {
             padding = box(10.px)
             fontSize = 12.px
             fontWeight = FontWeight.BOLD
+        }
+
+        button {
+            backgroundColor += c("#312F1F")
+            textFill = c("#C7C7C7")
+            borderColor += box(c("#312F1F"))
         }
     }
 }

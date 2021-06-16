@@ -1,8 +1,11 @@
 package fragment
 
+import app.whiteColor
 import controller.Client
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.FXCollections
+import javafx.scene.effect.InnerShadow
+import javafx.scene.layout.Border
 import javafx.scene.layout.Priority
 import javafx.stage.StageStyle
 import model.Password
@@ -24,16 +27,24 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment
                 passwords.setAll(passes)
             }
         }
-
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     override val root = tableview(passwords) {
         hgrow = Priority.ALWAYS
         vgrow = Priority.ALWAYS
+        val w = prefWidth
         enableCellEditing()
+        style {
+            this.textFill = whiteColor
+        }
+        effect = InnerShadow()
+        border = Border.EMPTY
 
-        column("Title", Password::titleProperty).makeEditable()
+        column("Title", Password::titleProperty).apply {
+            makeEditable()
+            weightedWidth(2)
+        }
         column("Login", Password::loginProperty).apply {
             makeEditable()
             setOnEditStart {
@@ -45,6 +56,7 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment
             setOnEditCancel {
                 replacePlaceholder(it.tablePosition.row, text.lowercase())
             }
+            weightedWidth(2)
         }
         column("Password", Password::passwordProperty).apply {
             makeEditable()
@@ -57,6 +69,7 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment
             setOnEditCancel {
                 replacePlaceholder(it.tablePosition.row, text.lowercase())
             }
+            weightedWidth(3)
         }
         column("Email", Password::emailProperty).apply {
             makeEditable()
@@ -69,6 +82,7 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment
             setOnEditCancel {
                 replacePlaceholder(it.tablePosition.row, text.lowercase())
             }
+            weightedWidth(4)
         }
 
         smartResize()

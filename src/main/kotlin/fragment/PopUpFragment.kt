@@ -3,6 +3,7 @@ package fragment
 import tornadofx.*
 
 class PopUpFragment : Fragment() {
+    // TODO use stackpane
     val text: String by param()
     val warning: Boolean by param()
 

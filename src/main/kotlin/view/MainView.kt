@@ -1,9 +1,14 @@
 package view
 
 import app.Config
+import app.secondForegroundColor
+import app.shadowColor
+import app.whiteColor
 import controller.Client
 import fragment.*
 import javafx.beans.property.SimpleListProperty
+import javafx.scene.effect.BlurType
+import javafx.scene.effect.DropShadow
 import javafx.scene.layout.Priority
 import javafx.stage.StageStyle
 import model.Password
@@ -26,6 +31,18 @@ class MainView : View("Keywarden") {
     }
 
     override val root = hbox {
+        textfield {
+            maxHeight = 0.0
+            prefHeight = 0.0
+            minHeight = 0.0
+
+            maxWidth = 0.0
+            prefWidth = 0.0
+            minWidth = 0.0
+
+            requestFocus()
+        }
+
         prefWidth = bw
         prefHeight = bh
         visibleProperty().onChange {
@@ -34,9 +51,23 @@ class MainView : View("Keywarden") {
         val passwordsTableFragment = PasswordsTableFragment(collectionsProperty)
 
         vbox {
+            toFront()
+            style {
+                backgroundColor += secondForegroundColor
+            }
+
             minWidth = cw
             prefHeight = Config.h
             this += SearchFragment()
+
+            label {
+                text = "Collections"
+                style {
+                    textFill = whiteColor
+                    fontSize = 14.pt
+                    paddingLeft = 15.0
+                }
+            }
             this += CollectionsListFragment(passwordsTableFragment::updatePasswords, collectionsProperty)
         }
 
@@ -48,6 +79,7 @@ class MainView : View("Keywarden") {
             }
             this += ActionBar()
             this += passwordsTableFragment
+            // TODO "region" for notifications
         }
     }
 }

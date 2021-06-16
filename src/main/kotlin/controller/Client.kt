@@ -40,8 +40,12 @@ object Client {
             val err = result.obj().get("error")
             err.toString()
         }catch (e: Exception) {
-            token = result.obj().get("token").toString()
-            ""
+            try {
+                token = result.obj().get("token").toString()
+                ""
+            } catch (e: Exception) {
+                "invalid credentials"
+            }
         }
     }
 

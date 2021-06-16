@@ -22,8 +22,12 @@ class EditIcon : Icon() {
 class PlusIcon : Icon() {
     init {
         root.apply {
-            line(12.0, 5.0, 12.0, 19.0)
-            line(5.0, 12.0, 19.0, 12.0)
+            line(12.0, 5.0, 12.0, 19.0).apply {
+                stroke = IconStyle.strokeColor
+            }
+            line(5.0, 12.0, 19.0, 12.0).apply {
+                stroke = IconStyle.strokeColor
+            }
         }
     }
 }
@@ -35,7 +39,9 @@ class SearchIcon : Icon() {
                 fill = IconStyle.fillColor
                 stroke = IconStyle.strokeColor
             }
-            line(21.0,21.0,16.65,16.65)
+            line(21.0,21.0,16.65,16.65).apply {
+                stroke = IconStyle.strokeColor
+            }
         }
     }
 }
@@ -43,13 +49,19 @@ class SearchIcon : Icon() {
 class TrashIcon : Icon() {
     init {
         root.apply {
-            polyline(3,6,5,6,21,6)
+            polyline(3,6,5,6,21,6).apply {
+                stroke = IconStyle.strokeColor
+            }
             svgpath("M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2").apply {
                 fill = IconStyle.fillColor
                 stroke = IconStyle.strokeColor
             }
-            line(10,11,10,17)
-            line(14,11,14,17)
+            line(10,11,10,17).apply {
+                stroke = IconStyle.strokeColor
+            }
+            line(14,11,14,17).apply {
+                stroke = IconStyle.strokeColor
+            }
         }
     }
 }
@@ -58,7 +70,9 @@ class UserIcon : Icon() {
     init {
         root.apply {
             svgpath("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2")
-            circle(12,7,4)
+            circle(12,7,4).apply {
+                stroke = IconStyle.strokeColor
+            }
         }
     }
 }

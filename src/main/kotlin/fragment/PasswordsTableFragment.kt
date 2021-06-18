@@ -3,6 +3,7 @@ package fragment
 import app.whiteColor
 import controller.Client
 import javafx.beans.property.SimpleListProperty
+import javafx.beans.property.StringProperty
 import javafx.collections.FXCollections
 import javafx.scene.effect.InnerShadow
 import javafx.scene.layout.Border
@@ -12,16 +13,14 @@ import model.Password
 import model.placeholder
 import tornadofx.*
 
-class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment() {
+class PasswordsTableFragment(collections: SimpleListProperty<String>, private val selectedCollection: StringProperty) : Fragment() {
     private val passwords = FXCollections.observableArrayList<Password>()
     init {
         if (collections.isNotEmpty()) {
             val coll = collections[0]
-            val (passes, err) = Client.fetchPasswords(coll)
+            val (passes, err) = Client.Passwords.fetchPasswords(coll)
             if (err != null) {
-                find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(
-                    stageStyle = StageStyle.UNDECORATED
-                )
+                popNotify(scope, err, true)
             } else {
                 passwords.setAll(passes)
             }
@@ -88,26 +87,27 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment
 
     fun updateProperty(row: Int, property: String) {
         val passwordObj = passwords[row]
-        val (login, email, password) = Client.getPassword(passwordObj.id)
 
-        if (property == "login") {
-            passwordObj.loginProperty.set(login)
-        } else if (property == "email") {
-            passwordObj.emailProperty.set(email)
-        } else {
-            passwordObj.passwordProperty.set(password)
+        val (data, err) = Client.Passwords.getPassword(passwordObj.id, selectedCollection.value)
+        if (err != null) {
+            popNotify(scope, err, true)
+            return
+        }
+        val (login, email, password) = data
+
+        when(property) {
+            "login" -> passwordObj.loginProperty.set(login)
+            "email" -> passwordObj.emailProperty.set(email)
+            else -> passwordObj.passwordProperty.set(password)
         }
     }
 
     fun replacePlaceholder(row: Int, property: String) {
         val passwordObj = passwords[row]
-
-        if (property == "login") {
-            passwordObj.loginProperty.set(placeholder)
-        } else if (property == "email") {
-            passwordObj.emailProperty.set(placeholder)
-        } else {
-            passwordObj.passwordProperty.set(placeholder)
+        when(property) {
+            "login" -> passwordObj.loginProperty.set(placeholder)
+            "email" -> passwordObj.emailProperty.set(placeholder)
+            else -> passwordObj.passwordProperty.set(placeholder)
         }
     }
 

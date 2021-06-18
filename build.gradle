@@ -52,6 +52,9 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "15"
 }
 
+applicationDefaultJvmArgs += "--add-opens=javafx.controls/javafx.scene.control=ALL-UNNAMED"
+applicationDefaultJvmArgs += "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
+
 task install {
     dependsOn(tasks.build)
     String homePath = System.getProperty("user.home")

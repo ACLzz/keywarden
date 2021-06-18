@@ -7,6 +7,7 @@ import app.whiteColor
 import controller.Client
 import fragment.*
 import javafx.beans.property.SimpleListProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
 import javafx.scene.layout.Priority
@@ -20,11 +21,13 @@ class MainView : View("Keywarden") {
     private val cw = 280.0
     private val collectionsProperty = SimpleListProperty<String>()
     private var collections by collectionsProperty
+    private val selectedCollectionProperty = SimpleStringProperty()
+    private var selectedCollection by selectedCollectionProperty
 
     init {
-        val (colls, err) = Client.fetchCollections()
+        val (colls, err) = Client.Collections.fetchCollections()
         if (err != null) {
-            find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(stageStyle = StageStyle.UNDECORATED)
+            popNotify(scope, err, true)
         } else {
             collections = colls.asObservable()
         }
@@ -48,7 +51,7 @@ class MainView : View("Keywarden") {
         visibleProperty().onChange {
             currentWindow?.sizeToScene()
         }
-        val passwordsTableFragment = PasswordsTableFragment(collectionsProperty)
+        val passwordsTableFragment = PasswordsTableFragment(collectionsProperty, selectedCollectionProperty)
 
         vbox {
             toFront()
@@ -68,7 +71,7 @@ class MainView : View("Keywarden") {
                     paddingLeft = 15.0
                 }
             }
-            this += CollectionsListFragment(passwordsTableFragment::updatePasswords, collectionsProperty)
+            this += CollectionsListFragment(passwordsTableFragment::updatePasswords, collectionsProperty, ::updateCurrentCollection)
         }
 
         vbox {
@@ -81,5 +84,9 @@ class MainView : View("Keywarden") {
             this += passwordsTableFragment
             // TODO "region" for notifications
         }
+    }
+
+    private fun updateCurrentCollection(collection: String) {
+        selectedCollection = collection
     }
 }

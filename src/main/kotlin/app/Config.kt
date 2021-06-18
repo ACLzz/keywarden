@@ -25,6 +25,7 @@ object Config {
         val bounds = Screen.getPrimary().bounds
         h = bounds.height
         w = bounds.width
+        println(w)
     }
 
     var k = 0.66

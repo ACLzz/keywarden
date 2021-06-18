@@ -15,94 +15,25 @@ import model.Password
 import model.placeholder
 import org.json.JSONObject
 import java.lang.Exception
+import javax.json.Json
+
+open class ClientModule {
+    lateinit var fetchRequest: ((String, String, List<Pair<String, String>>?) -> FuelJson)
+}
 
 object Client {
     private val tokenProperty = SimpleStringProperty("")
     private var token by tokenProperty
 
-    fun register(login: String, password: String): String {
-        val result = fetchRequest("auth/", "POST",
-            listOf(Pair("login", login), Pair("password", password)))
-
-        return try {
-            val err = result.obj().get("error")
-            err.toString()
-        }catch (e: Exception) {
-            ""
-        }
+    fun settoken(t: String) {
+        token = t
     }
 
-    fun login(login: String, password: String): String {
-        val result = fetchRequest("auth/login", "POST",
-            listOf(Pair("login", login), Pair("password", password)))
+    val Auth = AuthModule().apply { fetchRequest = ::fetchRequest }
+    val Collections = CollectionsModule().apply { fetchRequest = ::fetchRequest }
+    val Passwords = PasswordsModule().apply { fetchRequest = ::fetchRequest }
 
-        return try {
-            val err = result.obj().get("error")
-            err.toString()
-        }catch (e: Exception) {
-            try {
-                token = result.obj().get("token").toString()
-                ""
-            } catch (e: Exception) {
-                "invalid credentials"
-            }
-        }
-    }
-
-    fun fetchCollections() : Pair<List<String>, String?> {
-        val result = fetchRequest("collection", "GET", null)
-
-        return try {
-            val err = result.obj().get("error")
-            Pair(listOf(), err.toString())
-        }catch (e: Exception) {
-            var _collections: List<String>
-            try {
-                _collections = result.array().toList() as List<String>
-            } catch (e: Exception) {
-                _collections = listOf()
-            }
-
-            var collections: List<String> = listOf()
-            for (collection in _collections) {
-                collections = collections + collection.toString()
-            }
-            Pair(collections, null)
-        }
-    }
-
-    fun fetchPasswords(collection: String): Pair<List<Password>, String?> {
-        if (collection == "") {
-            return Pair(listOf(), null)
-        }
-
-        val result = fetchRequest("collection/$collection", "GET", null)
-
-        return try {
-            val err = result.obj().get("error")
-            Pair(listOf(), err.toString())
-        }catch (e: Exception) {
-            var _collections: List<HashMap<String, Any>>
-            try {
-                _collections = result.array().toList() as List<HashMap<String, Any>>
-            } catch (e: Exception) {
-                _collections = listOf()
-            }
-
-            var collections: List<Password> = listOf()
-            for (coll in _collections) {
-                val password = Password(
-                    coll["title"] as String, placeholder, placeholder, placeholder, coll["id"] as Int
-                )
-                collections = collections + password
-            }
-            Pair(collections, null)
-        }
-    }
-
-    fun getPassword(id: Int) = listOf("login", "email", "password")
-
-    fun fetchRequest(path: String, _request: String, data: List<Pair<String, String>>? = null): FuelJson {
+    private fun fetchRequest(path: String, _request: String, data: List<Pair<String, String>>? = null): FuelJson {
         val url = Config.url + path
         val request = when (_request) {
             "GET" -> url.httpGet()

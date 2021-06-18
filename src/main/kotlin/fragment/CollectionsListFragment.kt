@@ -13,8 +13,14 @@ import tornadofx.*
 import java.awt.TextField
 import kotlin.reflect.KFunction1
 
-class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>, collections: SimpleListProperty<String>) : Fragment() {
-    var currentCollection: String = ""
+class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>, collections: SimpleListProperty<String>,
+                              updateSelectedCollection: (String) -> Unit) : Fragment() {
+
+    init {
+        if (collections.isNotEmpty()) {
+            updateSelectedCollection(collections[0])
+        }
+    }
 
     override val root = vbox {
         style {
@@ -30,20 +36,18 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>,
                         return@setOnMouseClicked
                     }
 
-                    val (passwords, err) = Client.fetchPasswords(selectedItem.toString())
+                    val (passwords, err) = Client.Passwords.fetchPasswords(selectedItem.toString())
                     if (err != null) {
-                        find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(stageStyle = StageStyle.UNDECORATED)
+                        popNotify(scope, err, true)
                     } else {
                         updatePasswords(passwords)
+                        updateSelectedCollection(selectedItem.toString())
                     }
                 }
             }
 
             isEditable = true
             setCellFactory(TextFieldListCell.forListView())
-        }
-        if (collections.isNotEmpty()) {
-            currentCollection = collections[0]
         }
     }
 }

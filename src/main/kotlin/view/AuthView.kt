@@ -4,13 +4,11 @@ import app.Config
 import app.Styles
 import controller.Client
 import fragment.PopUpFragment
-import javafx.geometry.HPos
+import fragment.popNotify
 import javafx.geometry.Pos
 import javafx.scene.input.KeyCode
 import javafx.stage.StageStyle
 import tornadofx.*
-import kotlin.reflect.KFunction
-import kotlin.reflect.KFunction1
 
 class AuthView : View("Auth") {
     private val bw = Config.w * Config.k
@@ -118,20 +116,20 @@ class AuthView : View("Auth") {
     }
 
     fun login() {
-        val err = Client.login(login, password)
+        val err = Client.Auth.login(login, password)
         if (err == "") {
             replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds))
         } else {
-            find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(stageStyle = StageStyle.UNDECORATED)
+            popNotify(scope, err, true)
         }
     }
 
     fun register() {
-        val err = Client.register(login, password)
+        val err = Client.Auth.register(login, password)
         if (err == "") {
-            find<PopUpFragment>(mapOf(PopUpFragment::text to "Registered", PopUpFragment::warning to false)).openModal(stageStyle = StageStyle.UNDECORATED)
+            popNotify(scope, "Registered", false)
         } else {
-            find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(stageStyle = StageStyle.UNDECORATED)
+            popNotify(scope, err, true)
         }
     }
 }

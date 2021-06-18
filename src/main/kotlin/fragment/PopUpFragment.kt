@@ -1,6 +1,14 @@
 package fragment
 
+import javafx.stage.StageStyle
 import tornadofx.*
+
+fun popNotify(scope: Scope, text: String, warning: Boolean) {
+    find<PopUpFragment>(scope, mapOf(PopUpFragment::text to text, PopUpFragment::warning to warning)).openModal(stageStyle = StageStyle.UNDECORATED)
+    if (warning) {
+        println("WARNING: $text")
+    }
+}
 
 class PopUpFragment : Fragment() {
     // TODO use stackpane

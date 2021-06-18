@@ -24,6 +24,7 @@
 .idea/**/mongoSettings.xml
 
 *.iws
+.idea/
 
 
 # IntelliJ

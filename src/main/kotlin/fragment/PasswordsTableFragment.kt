@@ -15,9 +15,8 @@ import tornadofx.*
 class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment() {
     private val passwords = FXCollections.observableArrayList<Password>()
     init {
-        var coll = ""
         if (collections.isNotEmpty()) {
-            coll = collections[0]
+            val coll = collections[0]
             val (passes, err) = Client.fetchPasswords(coll)
             if (err != null) {
                 find<PopUpFragment>(mapOf(PopUpFragment::text to err, PopUpFragment::warning to true)).openModal(
@@ -33,7 +32,6 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>) : Fragment
     override val root = tableview(passwords) {
         hgrow = Priority.ALWAYS
         vgrow = Priority.ALWAYS
-        val w = prefWidth
         enableCellEditing()
         style {
             this.textFill = whiteColor

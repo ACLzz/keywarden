@@ -11,6 +11,6 @@ class MyApp: App(AuthView::class, Styles::class, PasswordsTableStyle::class, Col
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     launch<MyApp>()
 }

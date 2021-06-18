@@ -1,18 +1,25 @@
 package app
 
+import com.sksamuel.hoplite.ConfigLoader
 import javafx.stage.Screen
-import java.io.File
+import kotlin.io.path.Path
 
 object Config {
-    val h: Double
-    val w: Double
-    lateinit var url: String
+    var h: Double
+    var w: Double
+    var url: String = ""
+    var savedUsername: String = ""
+    var saveUsername: Boolean = false
+
     init {
-        val configPath = System.getProperty("user.home") + "/.keywarden/server_url"
-        File(configPath).forEachLine {
-            if (it.length > 2) {
-                url = it
-            }
+        val configPath = System.getProperty("user.home") + "/.keywarden/config.yml"
+
+        data class YamlConfig(var server_url: String, var save_username: Boolean, var saved_username: String)
+        val config = ConfigLoader().loadConfigOrThrow<YamlConfig>(paths=listOf(Path(configPath)))
+        with (config) {
+            savedUsername = saved_username
+            saveUsername = save_username
+            url = server_url
         }
 
         val bounds = Screen.getPrimary().bounds

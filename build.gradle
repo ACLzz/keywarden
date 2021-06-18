@@ -1,47 +1,16 @@
 buildscript {
-    ext.kotlin_version = "1.4.32"
+    ext.kotlin_version = "1.5.10"
     ext.tornadofx_version = "1.7.20"
     ext.junit_version = "5.1.0"
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven {
-            setUrl("https://plugins.gradle.org/m2/")
-        }
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.junit.platform:junit-platform-gradle-plugin:1.1.0"
-        classpath 'org.openjfx:javafx-plugin:0.0.9'
-    }
+    ext.hoplite_version = "1.4.1"
+    ext.fuel_version = "2.3.1"
 }
 
 plugins {
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.9'
-}
-
-apply plugin: "kotlin"
-apply plugin: "application"
-apply plugin: "org.junit.platform.gradle.plugin"
-apply plugin: 'org.openjfx.javafxplugin'
-
-javafx {
-    version = "12.0.1"
-    modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml']
-}
-
-dependencies {
-    implementation "no.tornado:tornadofx:$tornadofx_version"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "15"
-}
-
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "15"
+    id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
+    id 'org.openjfx.javafxplugin' version '0.0.10'
+    id "com.mxstrive.gradle.mklink-plugin" version "1.0.4"
 }
 
 repositories {
@@ -52,37 +21,103 @@ repositories {
     }
 }
 
+application {
+    mainClassName = "app.MyAppKt"
+}
+
+javafx {
+    version = "15.0.1"
+    modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml']
+}
+
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
-    implementation('com.github.kittinunf.fuel:fuel-json:2.3.1') {
+    implementation "no.tornado:tornadofx:$tornadofx_version"
+
+    implementation "com.sksamuel.hoplite:hoplite-core:$hoplite_version"
+    implementation "com.sksamuel.hoplite:hoplite-yaml:$hoplite_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "com.github.kittinunf.fuel:fuel:$fuel_version"
+    implementation("com.github.kittinunf.fuel:fuel-json:$fuel_version") {
         exclude group: 'org.json', module: 'json'
     }
     implementation 'org.json:json:20190722'
 
-    testCompile "org.junit.jupiter:junit-jupiter-api:$junit_version"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junit_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
 }
 
-mainClassName = "app.MyApp"
+compileKotlin {
+    kotlinOptions.jvmTarget = "15"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "15"
+}
 
-jar {
-    manifest {
-        attributes(
-                "Class-Path": configurations.compile.collect { it.getName() }.join(" "),
-                "Main-Class": mainClassName
-        )
-    }
-    from(configurations.compile.collect { entry -> zipTree(entry) }) {
-        exclude "META-INF/MANIFEST.MF"
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
+task install {
+    dependsOn(tasks.build)
+    String homePath = System.getProperty("user.home")
+    String configPath = homePath  + "/.keywarden"
+    String buildPath = "./build/distributions"
+    String prefix = "::::::: "
+
+    doLast {
+        String rootPassword = ""
+        def console = System.in.newReader()
+        if (console) {
+            println(prefix + "Enter your user password to make softlink of executable in /usr/local/bin or press enter to skip that step: ")
+            rootPassword = console.readLine()
+        } else {
+            println(prefix + "Java can't find your console so make soft link of ~/.keywarden/bin/keywarden to /usr/local/bin")
+        }
+
+        mkdir configPath
+        copy {
+            from "./extra/config.yml"
+            into configPath
+        }
+        println(prefix + "Your config in $configPath\n${prefix}Thanks for installing keywarden!")
+
+        copy {
+            from zipTree(file("$buildPath/keywarden.zip"))
+            into buildPath
+        }
+
+        copy {
+            from "$buildPath/keywarden"
+            into configPath
+        }
+
+        if (rootPassword.length() > 0) {
+            exec {
+		        commandLine "./install_manager.sh", "link", rootPassword
+            }
+        }
     }
 }
 
-applicationDefaultJvmArgs += "--add-opens=javafx.controls/javafx.scene.control=ALL-UNNAMED"
-applicationDefaultJvmArgs += "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
-rootProject.tasks.named("jar") {
-    duplicatesStrategy = 'include'
+task uninstall {
+    dependsOn(tasks.clean)
+    String homePath = System.getProperty("user.home")
+    String configPath = homePath  + "/.keywarden"
+    String prefix = "::::::: "
+
+    doLast {
+        String rootPassword = ""
+        def console = System.in.newReader()
+        if (console) {
+            println(prefix + "Enter your user password to delete softlink of executable in /usr/local/bin or press enter to skip that step: ")
+            rootPassword = console.readLine()
+        } else {
+            println(prefix + "Java can't find your console so make soft link of ~/.keywarden/bin/keywarden to /usr/local/bin")
+        }
+
+        delete {
+            delete configPath
+        }
+
+        if (rootPassword.length() > 0) {
+            exec {
+                commandLine "./install_manager.sh", "unlink", rootPassword
+            }
+        }
+    }
 }

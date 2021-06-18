@@ -122,7 +122,7 @@ object Client {
         }
         request.appendHeader(Pair("Authorization", token))
 
-        val (req, response, result) = request.responseJson()
+        val (_, response, result) = request.responseJson()
         if (result is Result.Failure) {
             var errStr: String
             if (response.statusCode == -1) {

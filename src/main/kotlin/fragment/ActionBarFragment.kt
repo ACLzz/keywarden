@@ -1,24 +1,50 @@
 package fragment
 
 import app.*
+import controller.Client
+import controller.MainController
+import javafx.beans.property.StringProperty
 import javafx.geometry.Pos
+import javafx.scene.control.TablePosition
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Priority
+import model.Password
 import tornadofx.*
 
-class ActionBar : Fragment() {
+class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
+    private val mainController: MainController by inject()
+
     override val root = hbox {
         val h = 50.0
         minHeight = h
         maxHeight = h
         addClass(ActionBarStyle.bar)
 
-        this += ActionButton("Add", PlusIcon()).apply {
+        this += ActionButton("Add", PlusIcon()).root.apply {
             style {
                 paddingLeft = 15.0
             }
+
+            setOnMouseClicked {
+                Client.Passwords.createPassword(mainController.selectedCollectionProperty.value, "Untitled")
+                fetchAndUpdatePasswords()
+            }
         }
-        this += ActionButton("Edit", EditIcon())
-        this += ActionButton("Remove", TrashIcon())
+        this += ActionButton("Remove", TrashIcon()).root.apply {
+            fun del() {
+                if (mainController.selectedItemProperty.value == null)
+                    return
+
+                Client.Passwords.deletePassword(mainController.selectedItemProperty.value.id,
+                    mainController.selectedCollectionProperty.value)
+                fetchAndUpdatePasswords()
+            }
+
+            setOnMouseClicked {
+                del()
+            }
+        }
 
         region {
             hgrow = Priority.ALWAYS

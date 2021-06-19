@@ -133,6 +133,11 @@ class PasswordsTableStyle : Stylesheet() {
                 prefWidth = 0.px
                 prefHeight = 0.px
             }
+            placeholder {
+                label {
+                    textFill = whiteColor
+                }
+            }
         }
     }
 }

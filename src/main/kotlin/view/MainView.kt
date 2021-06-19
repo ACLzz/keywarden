@@ -1,39 +1,43 @@
 package view
 
 import app.Config
+import app.mainBackgroundColor
 import app.secondForegroundColor
-import app.shadowColor
 import app.whiteColor
 import controller.Client
+import controller.MainController
 import fragment.*
 import javafx.beans.property.SimpleListProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.scene.effect.BlurType
-import javafx.scene.effect.DropShadow
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
-import javafx.stage.StageStyle
-import model.Password
 import tornadofx.*
 
 class MainView : View("Keywarden") {
     private val bw = Config.w * Config.k
     private val bh = Config.h * Config.k
     private val cw = 280.0
-    private val collectionsProperty = SimpleListProperty<String>()
-    private var collections by collectionsProperty
-    private val selectedCollectionProperty = SimpleStringProperty()
-    private var selectedCollection by selectedCollectionProperty
+
+    private val mainController: MainController by inject()
 
     init {
         val (colls, err) = Client.Collections.fetchCollections()
         if (err != null) {
             popNotify(scope, err, true)
         } else {
-            collections = colls.asObservable()
+            mainController.collectionsProperty.set(colls.asObservable())
+            if (mainController.collectionsProperty.value.isNotEmpty()) {
+                mainController.selectedCollectionProperty.set(mainController.collectionsProperty.value[0])
+            }
         }
     }
 
     override val root = hbox {
+        style {
+            backgroundColor += mainBackgroundColor
+            textFill = whiteColor
+        }
+
         textfield {
             maxHeight = 0.0
             prefHeight = 0.0
@@ -51,7 +55,18 @@ class MainView : View("Keywarden") {
         visibleProperty().onChange {
             currentWindow?.sizeToScene()
         }
-        val passwordsTableFragment = PasswordsTableFragment(collectionsProperty, selectedCollectionProperty)
+        val passwordsTableFragment = PasswordsTableFragment()
+
+        setOnKeyPressed {
+            if (it.code == KeyCode.DELETE) {
+                if (mainController.selectedItemProperty.value == null)
+                    return@setOnKeyPressed
+
+                Client.Passwords.deletePassword(mainController.selectedItemProperty.value.id,
+                    mainController.selectedCollectionProperty.value)
+                passwordsTableFragment.fetchAndUpdatePasswords()
+            }
+        }
 
         vbox {
             toFront()
@@ -71,7 +86,7 @@ class MainView : View("Keywarden") {
                     paddingLeft = 15.0
                 }
             }
-            this += CollectionsListFragment(passwordsTableFragment::updatePasswords, collectionsProperty, ::updateCurrentCollection)
+            this += CollectionsListFragment(passwordsTableFragment::updatePasswords)
         }
 
         vbox {
@@ -80,13 +95,9 @@ class MainView : View("Keywarden") {
                 vgrow = Priority.ALWAYS
                 hgrow = Priority.ALWAYS
             }
-            this += ActionBar()
+            this += ActionBar(passwordsTableFragment::fetchAndUpdatePasswords)
             this += passwordsTableFragment
             // TODO "region" for notifications
         }
-    }
-
-    private fun updateCurrentCollection(collection: String) {
-        selectedCollection = collection
     }
 }

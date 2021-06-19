@@ -1,36 +1,22 @@
 package controller
 
-import model.Password
 import model.placeholder
 import java.lang.Exception
 
 class PasswordsModule : ClientModule() {
-    fun fetchPasswords(collection: String): Pair<List<Password>, String?> {
-        if (collection == "") {
-            return Pair(listOf(), null)
-        }
-
-        val result = super.fetchRequest("collection/$collection", "GET", null)
+    fun createPassword(collection: String, title: String, login: String = placeholder, password: String = placeholder, email: String = placeholder) : String? {
+        val result = super.fetchRequest("collection/$collection", "POST", listOf(
+            Pair("title", title),
+            Pair("login", login),
+            Pair("password", password),
+            Pair("email", email)
+        ))
 
         return try {
             val err = result.obj().get("error")
-            Pair(listOf(), err.toString())
+            err.toString()
         }catch (e: Exception) {
-            var _collections: List<HashMap<String, Any>>
-            try {
-                _collections = result.array().toList() as List<HashMap<String, Any>>
-            } catch (e: Exception) {
-                _collections = listOf()
-            }
-
-            var collections: List<Password> = listOf()
-            for (coll in _collections) {
-                val password = Password(
-                    coll["title"] as String, placeholder, placeholder, placeholder, coll["id"] as Int
-                )
-                collections = collections + password
-            }
-            Pair(collections, null)
+            null
         }
     }
 
@@ -45,6 +31,47 @@ class PasswordsModule : ClientModule() {
             val data = listOf(_data.getString("login"), _data.getString("email"), _data.getString("password"))
 
             Pair(data, null)
+        }
+    }
+
+    fun updatePassword(id: Int, collection: String,
+                       title: String? = null, login: String? = null,
+                       password: String? = null, email: String? = null): String? {
+        var data = listOf<Pair<String, String>>()
+
+        when {
+            title != null -> {
+                data = data + Pair("title", title)
+            }
+            login != null -> {
+                data = data + Pair("login", login)
+            }
+            password != null -> {
+                data = data + Pair("password", password)
+            }
+            email != null -> {
+                data = data + Pair("email", email)
+            }
+        }
+
+        val result = super.fetchRequest("collection/$collection/$id", "PUT", data)
+
+        return try {
+            val err = result.obj().get("error")
+            err.toString()
+        }catch (e: Exception) {
+            null
+        }
+    }
+
+    fun deletePassword(id: Int, collection: String) : String? {
+        val result = super.fetchRequest("collection/$collection/$id", "DELETE", null)
+
+        return try {
+            val err = result.obj().get("error")
+            err.toString()
+        }catch (e: Exception) {
+            null
         }
     }
 }

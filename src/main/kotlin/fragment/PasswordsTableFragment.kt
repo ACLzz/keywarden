@@ -2,29 +2,26 @@ package fragment
 
 import app.whiteColor
 import controller.Client
-import javafx.beans.property.SimpleListProperty
-import javafx.beans.property.StringProperty
+import controller.MainController
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
+import javafx.scene.control.TableColumn
+import javafx.scene.effect.BlurType
 import javafx.scene.effect.InnerShadow
 import javafx.scene.layout.Border
 import javafx.scene.layout.Priority
-import javafx.stage.StageStyle
 import model.Password
 import model.placeholder
 import tornadofx.*
+import kotlin.reflect.KProperty1
 
-class PasswordsTableFragment(collections: SimpleListProperty<String>, private val selectedCollection: StringProperty) : Fragment() {
+class PasswordsTableFragment : Fragment() {
     private val passwords = FXCollections.observableArrayList<Password>()
+    private val mainController: MainController by inject()
+    private var editingRow = 0
+
     init {
-        if (collections.isNotEmpty()) {
-            val coll = collections[0]
-            val (passes, err) = Client.Passwords.fetchPasswords(coll)
-            if (err != null) {
-                popNotify(scope, err, true)
-            } else {
-                passwords.setAll(passes)
-            }
-        }
+        fetchAndUpdatePasswords(false)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -35,52 +32,51 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>, private va
         style {
             this.textFill = whiteColor
         }
-        effect = InnerShadow()
         border = Border.EMPTY
 
-        column("Title", Password::titleProperty).apply {
-            makeEditable()
-            weightedWidth(2)
+        onSelectionChange {
+            mainController.selectedItemProperty.set(it)
         }
-        column("Login", Password::loginProperty).apply {
-            makeEditable()
-            setOnEditStart {
-                updateProperty(it.tablePosition.row, text.lowercase())
+
+        fun buildColumn(title: String, prop: KProperty1<Password, ObservableValue<String>>, updateArg: String,
+                        weight: Int, placeholder: Boolean = true): TableColumn<Password, String> {
+            return column(title, prop).apply {
+                makeEditable()
+                setOnEditCommit {
+                    val err = when (updateArg.lowercase()) {
+                        "title" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, title=it.newValue)
+                        "login" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, login=it.newValue)
+                        "password" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, password=it.newValue)
+                        else -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, email=it.newValue)
+                    }
+                    if (err != null) {
+                        popNotify(scope, err, true)
+                    }
+
+                    if (placeholder)
+                        replacePlaceholder(it.tablePosition.row, text.lowercase())
+                }
+
+                setOnEditStart {
+                    editingRow = it.tablePosition.row
+                    if (placeholder) {
+                        updateProperty(it.tablePosition.row, text.lowercase())
+                    }
+                }
+
+                if (placeholder) {
+                    setOnEditCancel { replacePlaceholder(editingRow, text.lowercase()) }
+                }
+                weightedWidth(weight)
             }
-            setOnEditCommit {
-                replacePlaceholder(it.tablePosition.row, text.lowercase())
-            }
-            setOnEditCancel {
-                replacePlaceholder(it.tablePosition.row, text.lowercase())
-            }
-            weightedWidth(2)
         }
-        column("Password", Password::passwordProperty).apply {
-            makeEditable()
-            setOnEditStart {
-                updateProperty(it.tablePosition.row, text.lowercase())
-            }
-            setOnEditCommit {
-                replacePlaceholder(it.tablePosition.row, text.lowercase())
-            }
-            setOnEditCancel {
-                replacePlaceholder(it.tablePosition.row, text.lowercase())
-            }
-            weightedWidth(3)
-        }
-        column("Email", Password::emailProperty).apply {
-            makeEditable()
-            setOnEditStart {
-                updateProperty(it.tablePosition.row, text.lowercase())
-            }
-            setOnEditCommit {
-                replacePlaceholder(it.tablePosition.row, text.lowercase())
-            }
-            setOnEditCancel {
-                replacePlaceholder(it.tablePosition.row, text.lowercase())
-            }
-            weightedWidth(4)
-        }
+
+        buildColumn("Title", Password::titleProperty, "title", 2, placeholder = false)
+        buildColumn("Login", Password::loginProperty, "login", 2)
+        buildColumn("Password", Password::passwordProperty, "password", 3)
+        buildColumn("Email", Password::emailProperty, "email", 4)
+
+        placeholder = label("No passwords in that collection")
 
         smartResize()
     }
@@ -88,7 +84,7 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>, private va
     fun updateProperty(row: Int, property: String) {
         val passwordObj = passwords[row]
 
-        val (data, err) = Client.Passwords.getPassword(passwordObj.id, selectedCollection.value)
+        val (data, err) = Client.Passwords.getPassword(passwordObj.id, mainController.selectedCollectionProperty.value)
         if (err != null) {
             popNotify(scope, err, true)
             return
@@ -103,11 +99,17 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>, private va
     }
 
     fun replacePlaceholder(row: Int, property: String) {
-        val passwordObj = passwords[row]
-        when(property) {
-            "login" -> passwordObj.loginProperty.set(placeholder)
-            "email" -> passwordObj.emailProperty.set(placeholder)
-            else -> passwordObj.passwordProperty.set(placeholder)
+        if (passwords.size < row + 1) {
+            return
+        }
+        runAsync {
+            Thread.sleep(1_000)
+            val passwordObj = passwords[row]
+            when(property) {
+                "login" -> passwordObj.loginProperty.set(placeholder)
+                "email" -> passwordObj.emailProperty.set(placeholder)
+                else -> passwordObj.passwordProperty.set(placeholder)
+            }
         }
     }
 
@@ -115,5 +117,19 @@ class PasswordsTableFragment(collections: SimpleListProperty<String>, private va
         // uses for updating password list when changing collection in CollectionListFragment
         passwords.setAll(newPasswords.asObservable())
         root.refresh()
+    }
+
+    fun fetchAndUpdatePasswords(rootInitialized: Boolean = true) {
+        if (mainController.selectedCollectionProperty.value != null && mainController.selectedCollectionProperty.value.isNotEmpty()) {
+            val (passes, err) = Client.Collections.fetchPasswords(mainController.selectedCollectionProperty.value)
+            if (err != null) {
+                popNotify(scope, err, true)
+            } else {
+                if (rootInitialized)
+                    updatePasswords(passes)
+                else
+                    passwords.setAll(passes)
+            }
+        }
     }
 }

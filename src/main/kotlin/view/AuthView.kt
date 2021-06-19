@@ -3,6 +3,7 @@ package view
 import app.Config
 import app.Styles
 import controller.Client
+import controller.MainController
 import fragment.PopUpFragment
 import fragment.popNotify
 import javafx.geometry.Pos
@@ -17,6 +18,7 @@ class AuthView : View("Auth") {
     private var password = ""
     private lateinit var focusPassword: () -> Unit
     private lateinit var pressLogin: () -> Unit
+    private val mainController: MainController by inject()
 
     override val root = vbox {
         prefWidth = bw
@@ -118,6 +120,7 @@ class AuthView : View("Auth") {
     fun login() {
         val err = Client.Auth.login(login, password)
         if (err == "") {
+            mainController.initCollections()
             replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds))
         } else {
             popNotify(scope, err, true)

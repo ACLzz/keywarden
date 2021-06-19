@@ -28,7 +28,7 @@ class PasswordsModule : ClientModule() {
             Pair(listOf(), err.toString())
         }catch (e: Exception) {
             val _data = result.obj()
-            val data = listOf(_data.getString("login"), _data.getString("email"), _data.getString("password"))
+            val data = listOf(_data.getString("title"), _data.getString("login"), _data.getString("email"), _data.getString("password"))
 
             Pair(data, null)
         }

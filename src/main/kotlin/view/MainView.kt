@@ -20,18 +20,6 @@ class MainView : View("Keywarden") {
 
     private val mainController: MainController by inject()
 
-    init {
-        val (colls, err) = Client.Collections.fetchCollections()
-        if (err != null) {
-            popNotify(scope, err, true)
-        } else {
-            mainController.collectionsProperty.set(colls.asObservable())
-            if (mainController.collectionsProperty.value.isNotEmpty()) {
-                mainController.selectedCollectionProperty.set(mainController.collectionsProperty.value[0])
-            }
-        }
-    }
-
     override val root = hbox {
         style {
             backgroundColor += mainBackgroundColor

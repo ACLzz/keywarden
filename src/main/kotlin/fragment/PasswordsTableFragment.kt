@@ -6,8 +6,6 @@ import controller.MainController
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.scene.control.TableColumn
-import javafx.scene.effect.BlurType
-import javafx.scene.effect.InnerShadow
 import javafx.scene.layout.Border
 import javafx.scene.layout.Priority
 import model.Password
@@ -21,7 +19,7 @@ class PasswordsTableFragment : Fragment() {
     private var editingRow = 0
 
     init {
-        fetchAndUpdatePasswords(false)
+        fetchAndUpdatePasswords()
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -43,14 +41,24 @@ class PasswordsTableFragment : Fragment() {
             return column(title, prop).apply {
                 makeEditable()
                 setOnEditCommit {
-                    val err = when (updateArg.lowercase()) {
-                        "title" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, title=it.newValue)
-                        "login" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, login=it.newValue)
-                        "password" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, password=it.newValue)
-                        else -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, email=it.newValue)
-                    }
-                    if (err != null) {
-                        popNotify(scope, err, true)
+                    val rowId = it.tablePosition.row
+
+                    runAsync {
+                        when (updateArg.lowercase()) {
+                            "title" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, title=it.newValue)
+                            "login" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, login=it.newValue)
+                            "password" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, password=it.newValue)
+                            else -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, email=it.newValue)
+                        }
+                    } ui { err ->
+                        if (err != null) {
+                            popNotify(scope, err, true)
+                        }
+
+                        if (updateArg.lowercase() == "title") {
+                            updateProperty(rowId, text.lowercase())
+                            this@tableview.sort()
+                        }
                     }
 
                     if (placeholder)
@@ -59,9 +67,7 @@ class PasswordsTableFragment : Fragment() {
 
                 setOnEditStart {
                     editingRow = it.tablePosition.row
-                    if (placeholder) {
-                        updateProperty(it.tablePosition.row, text.lowercase())
-                    }
+                    updateProperty(it.tablePosition.row, text.lowercase())
                 }
 
                 if (placeholder) {
@@ -71,7 +77,10 @@ class PasswordsTableFragment : Fragment() {
             }
         }
 
-        buildColumn("Title", Password::titleProperty, "title", 2, placeholder = false)
+        buildColumn("Title", Password::titleProperty, "title", 2, placeholder = false).apply {
+            sortOrder.add(this)
+            isSortable = true
+        }
         buildColumn("Login", Password::loginProperty, "login", 2)
         buildColumn("Password", Password::passwordProperty, "password", 3)
         buildColumn("Email", Password::emailProperty, "email", 4)
@@ -89,9 +98,10 @@ class PasswordsTableFragment : Fragment() {
             popNotify(scope, err, true)
             return
         }
-        val (login, email, password) = data
+        val (title, login, email, password) = data
 
         when(property) {
+            "title" -> passwordObj.titleProperty.set(title)
             "login" -> passwordObj.loginProperty.set(login)
             "email" -> passwordObj.emailProperty.set(email)
             else -> passwordObj.passwordProperty.set(password)
@@ -102,33 +112,33 @@ class PasswordsTableFragment : Fragment() {
         if (passwords.size < row + 1) {
             return
         }
-        runAsync {
-            Thread.sleep(1_000)
-            val passwordObj = passwords[row]
-            when(property) {
-                "login" -> passwordObj.loginProperty.set(placeholder)
-                "email" -> passwordObj.emailProperty.set(placeholder)
-                else -> passwordObj.passwordProperty.set(placeholder)
-            }
+        val passwordObj = passwords[row]
+        when(property) {
+            "login" -> passwordObj.loginProperty.set(placeholder)
+            "email" -> passwordObj.emailProperty.set(placeholder)
+            else -> passwordObj.passwordProperty.set(placeholder)
         }
+        root.refresh()
     }
 
     fun updatePasswords(newPasswords: List<Password>) {
         // uses for updating password list when changing collection in CollectionListFragment
         passwords.setAll(newPasswords.asObservable())
         root.refresh()
+        root.sort()
     }
 
-    fun fetchAndUpdatePasswords(rootInitialized: Boolean = true) {
+    fun fetchAndUpdatePasswords() {
         if (mainController.selectedCollectionProperty.value != null && mainController.selectedCollectionProperty.value.isNotEmpty()) {
-            val (passes, err) = Client.Collections.fetchPasswords(mainController.selectedCollectionProperty.value)
-            if (err != null) {
-                popNotify(scope, err, true)
-            } else {
-                if (rootInitialized)
+            runAsync {
+                Client.Collections.fetchPasswords(mainController.selectedCollectionProperty.value)
+            } ui {
+                val (passes, err) = it
+                if (err != null) {
+                    popNotify(scope, err, true)
+                } else {
                     updatePasswords(passes)
-                else
-                    passwords.setAll(passes)
+                }
             }
         }
     }

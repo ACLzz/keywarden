@@ -1,50 +1,93 @@
 package fragment
 
 import app.Config
-import app.Styles
-import app.accentForegroundColor
 import app.secondForegroundColor
 import controller.Client
 import controller.MainController
-import javafx.beans.property.SimpleListProperty
 import javafx.scene.control.cell.TextFieldListCell
-import javafx.stage.StageStyle
+import javafx.scene.layout.Priority
 import model.Password
 import tornadofx.*
-import java.awt.TextField
 import kotlin.reflect.KFunction1
 
 class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>) : Fragment() {
     private val mainController: MainController by inject()
-    override val root = vbox {
+
+    val list = listview(mainController.collectionsProperty.asObservable()) {
         style {
             backgroundColor += secondForegroundColor
-            paddingTop = 10.0
         }
+        prefHeight = Config.h
 
-        listview(mainController.collectionsProperty.asObservable()) {
-            style {
-                backgroundColor += secondForegroundColor
-            }
-            prefHeight = Config.h
-            selectedItem.apply {
-                setOnMouseClicked {
-                    if (selectedItem == null) {
-                        return@setOnMouseClicked
-                    }
+        selectedItem.apply {
+            setOnMouseClicked {
+                if (selectedItem == null) {
+                    return@setOnMouseClicked
+                }
 
-                    val (passwords, err) = Client.Collections.fetchPasswords(selectedItem.toString())
-                    if (err != null) {
-                        popNotify(scope, err, true)
-                    } else {
-                        updatePasswords(passwords)
-                        mainController.selectedCollectionProperty.set(selectedItem.toString())
-                    }
+                val (passwords, err) = Client.Collections.fetchPasswords(selectedItem.toString())
+                if (err != null) {
+                    popNotify(scope, err, true)
+                } else {
+                    updatePasswords(passwords)
+                    mainController.selectedCollectionProperty.set(selectedItem.toString())
                 }
             }
 
-            isEditable = true
-            setCellFactory(TextFieldListCell.forListView())
+            setOnEditCommit {
+                if (items[it.index] == it.newValue) {
+                    return@setOnEditCommit
+                }
+
+                runAsync {
+                    Client.Collections.updateCollection(selectedItem.toString(), it.newValue)
+                } ui { err ->
+                    if (err != null) {
+                        popNotify(scope, err, true)
+                    } else {
+                        val i = mainController.collectionsProperty.value.toMutableList()
+                        i[i.indexOf(selectedItem.toString())] = it.newValue
+                        i.sort()
+                        mainController.collectionsProperty.set(i.asObservable())
+                        items = mainController.collectionsProperty
+                        refresh()
+                    }
+                }
+            }
+        }
+
+        isEditable = true
+        setCellFactory(TextFieldListCell.forListView())
+    }
+
+    override val root = vbox {
+        style {
+            backgroundColor += secondForegroundColor
+            vgrow = Priority.ALWAYS
+        }
+        this += list
+    }
+
+    fun getNextItem() : String? {
+        return if (list.selectedItem != null) {
+            list.items[list.items.indexOf(list.selectedItem)+1]
+        } else {
+            ""
+        }
+    }
+
+    fun fetchAndUpdateCollections() {
+        runAsync {
+            Client.Collections.fetchCollections()
+        } ui {
+            val (colls, err) = it
+            if (err != null) {
+                popNotify(scope, err, true)
+            } else {
+                colls.sort()
+                mainController.collectionsProperty.set(colls.asObservable())
+                list.refresh()
+            }
         }
     }
 }

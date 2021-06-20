@@ -24,10 +24,7 @@ open class ClientModule {
 object Client {
     private val tokenProperty = SimpleStringProperty("")
     private var token by tokenProperty
-
-    fun settoken(t: String) {
-        token = t
-    }
+    fun settoken(t: String) { token = t }
 
     val Auth = AuthModule().apply { fetchRequest = ::fetchRequest }
     val Collections = CollectionsModule().apply { fetchRequest = ::fetchRequest }

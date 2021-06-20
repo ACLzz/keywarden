@@ -11,14 +11,14 @@ import tornadofx.asObservable
 class MainController : Controller() {
     val collectionsProperty = SimpleListProperty<String>()
     val selectedCollectionProperty = SimpleStringProperty()
-    var selectedItemProperty = SimpleObjectProperty<Password>()
+    var selectedPasswordProperty = SimpleObjectProperty<Password>()
 
     fun initCollections() {
         val (colls, err) = Client.Collections.fetchCollections()
         if (err != null) {
             popNotify(scope, err, true)
         } else {
-            collectionsProperty.set(colls.asObservable())
+            collectionsProperty.set(colls.sorted().asObservable())
             if (collectionsProperty.value.isNotEmpty()) {
                 selectedCollectionProperty.set(collectionsProperty.value[0])
             }

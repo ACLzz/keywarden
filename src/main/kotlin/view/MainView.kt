@@ -1,14 +1,9 @@
 package view
 
-import app.Config
-import app.mainBackgroundColor
-import app.secondForegroundColor
-import app.whiteColor
+import app.*
 import controller.Client
 import controller.MainController
 import fragment.*
-import javafx.beans.property.SimpleListProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -44,13 +39,14 @@ class MainView : View("Keywarden") {
             currentWindow?.sizeToScene()
         }
         val passwordsTableFragment = PasswordsTableFragment()
+        val collectionsList = CollectionsListFragment(passwordsTableFragment::updatePasswords)
 
         setOnKeyPressed {
             if (it.code == KeyCode.DELETE) {
-                if (mainController.selectedItemProperty.value == null)
+                if (mainController.selectedPasswordProperty.value == null)
                     return@setOnKeyPressed
 
-                Client.Passwords.deletePassword(mainController.selectedItemProperty.value.id,
+                Client.Passwords.deletePassword(mainController.selectedPasswordProperty.value.id,
                     mainController.selectedCollectionProperty.value)
                 passwordsTableFragment.fetchAndUpdatePasswords()
             }
@@ -66,15 +62,52 @@ class MainView : View("Keywarden") {
             prefHeight = Config.h
             this += SearchFragment()
 
-            label {
-                text = "Collections"
+            hbox {
                 style {
-                    textFill = whiteColor
-                    fontSize = 14.pt
-                    paddingLeft = 15.0
+                    paddingBottom = 10.0
+                }
+                label {
+                    text = "Collections"
+                    style {
+                        textFill = whiteColor
+                        fontSize = 14.pt
+                        paddingLeft = 15.0
+                    }
+                }
+
+                region {
+                    hgrow = Priority.ALWAYS
+                }
+
+                this += ActionButton(null, PlusIcon(), 10.0).root.apply {
+                    setOnMouseClicked {
+                        val defaultCollectionName = "Untitled"
+                        var newCollectionName = ""
+                        for (i in 1..1000) {
+                            newCollectionName = defaultCollectionName + i.toString()
+                            if (newCollectionName in mainController.collectionsProperty.value.toList()) {
+                                continue
+                            }
+                            break
+                        }
+
+                        Client.Collections.createCollection(newCollectionName)
+                        collectionsList.fetchAndUpdateCollections()
+                    }
+                }
+                this += ActionButton(null, TrashIcon()).root.apply {
+                    setOnMouseClicked {
+                        if (mainController.selectedCollectionProperty.value == null)
+                            return@setOnMouseClicked
+
+                        Client.Collections.deleteCollection(mainController.selectedCollectionProperty.value)
+                        mainController.selectedCollectionProperty.set(collectionsList.getNextItem())
+                        collectionsList.fetchAndUpdateCollections()
+                        passwordsTableFragment.fetchAndUpdatePasswords()
+                    }
                 }
             }
-            this += CollectionsListFragment(passwordsTableFragment::updatePasswords)
+            this += collectionsList
         }
 
         vbox {

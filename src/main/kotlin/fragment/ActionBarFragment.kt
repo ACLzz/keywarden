@@ -3,13 +3,8 @@ package fragment
 import app.*
 import controller.Client
 import controller.MainController
-import javafx.beans.property.StringProperty
 import javafx.geometry.Pos
-import javafx.scene.control.TablePosition
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Priority
-import model.Password
 import tornadofx.*
 
 class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
@@ -33,10 +28,10 @@ class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
         }
         this += ActionButton("Remove", TrashIcon()).root.apply {
             fun del() {
-                if (mainController.selectedItemProperty.value == null)
+                if (mainController.selectedPasswordProperty.value == null)
                     return
 
-                Client.Passwords.deletePassword(mainController.selectedItemProperty.value.id,
+                Client.Passwords.deletePassword(mainController.selectedPasswordProperty.value.id,
                     mainController.selectedCollectionProperty.value)
                 fetchAndUpdatePasswords()
             }
@@ -63,21 +58,22 @@ class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
     }
 }
 
-class ActionButton(text: String, icon: Icon) : Fragment() {
+class ActionButton(text: String?, icon: Icon, paddingRight: Double = 30.0) : Fragment() {
     override val root = hbox {
         alignment = Pos.CENTER_LEFT
-        label {
-            this.text = text
-            addClass(ActionBarStyle.actionLabel)
+        if (text != null) {
+            label {
+                this.text = text
+                addClass(ActionBarStyle.actionLabel)
+            }
         }
         vbox {
             alignment = Pos.CENTER_RIGHT
             this += icon
         }
         pane {
-            val w = 30.0
-            maxWidth = w
-            minWidth = w
+            maxWidth = paddingRight
+            minWidth = paddingRight
         }
     }
 }

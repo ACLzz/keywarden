@@ -33,7 +33,7 @@ class PasswordsTableFragment : Fragment() {
         border = Border.EMPTY
 
         onSelectionChange {
-            mainController.selectedItemProperty.set(it)
+            mainController.selectedPasswordProperty.set(it)
         }
 
         fun buildColumn(title: String, prop: KProperty1<Password, ObservableValue<String>>, updateArg: String,

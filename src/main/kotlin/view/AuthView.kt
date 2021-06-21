@@ -2,10 +2,12 @@ package view
 
 import app.Config
 import app.Styles
+import app.whiteColor
 import controller.Client
 import controller.MainController
 import fragment.PopUpFragment
 import fragment.popNotify
+import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.input.KeyCode
 import javafx.stage.StageStyle
@@ -16,9 +18,49 @@ class AuthView : View("Auth") {
     private val bh = Config.h * Config.k
     private var login = ""
     private var password = ""
-    private lateinit var focusPassword: () -> Unit
     private lateinit var pressLogin: () -> Unit
     private val mainController: MainController by inject()
+
+    private val saveLogin = checkbox {
+        text = "remember login"
+        isSelected = Config.saveUsername
+        style {
+            textFill = whiteColor
+        }
+    }
+
+    private val loginField = textfield {
+        if (Config.saveUsername) {
+            text = Config.savedUsername
+            login = text
+        }
+        minWidth = 150.0
+        setOnKeyTyped {
+            login = this.text
+        }
+
+        setOnKeyPressed {
+            if(it.code.equals(KeyCode.ENTER)){
+                passField.requestFocus()
+            }
+        }
+    }
+
+    private val passField = passwordfield {
+        minWidth = 150.0
+        if (Config.saveUsername) {
+            whenDocked { requestFocus() }
+        }
+
+        setOnKeyTyped {
+            password = this.text
+        }
+        setOnKeyPressed {
+            if(it.code.equals(KeyCode.ENTER)){
+                pressLogin()
+            }
+        }
+    }
 
     override val root = vbox {
         prefWidth = bw
@@ -52,63 +94,59 @@ class AuthView : View("Auth") {
             }
 
             vbox {
-                textfield {
-                    minWidth = 150.0
-                    setOnKeyTyped {
-                        login = this.text
-                    }
-
-                    setOnKeyPressed {
-                        if(it.code.equals(KeyCode.ENTER)){
-                            focusPassword()
-                        }
-                    }
+                style {
+                    alignment = Pos.CENTER
                 }
-                stackpane {
-                    val _height = 10.0
-                    minHeight = _height
-                    maxHeight = _height
+                this += loginField
+                region {
+                    val h = 10.0
+                    minHeight = h
+                    maxHeight = h
                 }
-                passwordfield {
-                    minWidth = 150.0
-                    setOnKeyTyped {
-                        password = this.text
-                    }
-                    setOnKeyPressed {
-                        if(it.code.equals(KeyCode.ENTER)){
-                            pressLogin()
-                        }
-                    }
-
-                    focusPassword = this::requestFocus
-                }
+                this += passField
             }
         }
 
-        hbox {
+        vbox {
             style {
                 alignment = Pos.CENTER
             }
+            hbox {
+                style {
+                    alignment = Pos.CENTER
+                }
+                button {
+                    text = "Login"
+                    addClass(Styles.button)
 
-            button {
-                text = "Login"
-                addClass(Styles.button)
+                    setOnMouseClicked {
+                        login()
+                    }
 
-                setOnMouseClicked {
-                    login()
+                    pressLogin = { login() }
                 }
 
-                pressLogin = { login() }
+                region {
+                    val w = 20.0
+                    minWidth = w
+                    maxWidth = w
+                }
+
+                this += saveLogin
             }
 
-            pane {
-                minWidth = 10.0
-                maxWidth = 10.0
+            region {
+                val h = 10.0
+                minHeight = h
+                maxHeight = h
             }
 
             button {
                 text = "Register"
                 addClass(Styles.button)
+                style {
+                    alignment = Pos.CENTER
+                }
 
                 setOnMouseClicked {
                     register()
@@ -118,21 +156,26 @@ class AuthView : View("Auth") {
     }
 
     fun login() {
-        val err = Client.Auth.login(login, password)
-        if (err == "") {
-            mainController.initCollections()
-            replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds))
-        } else {
-            popNotify(scope, err, true)
+        Client.Auth.login(login, password)?.let {
+            popNotify(scope, it, true)
+            return
         }
+
+        if (saveLogin.isSelected) {
+            Config.savedUsername = login
+        }
+        Config.saveUsername = saveLogin.isSelected
+        Config.saveConfig()
+
+        mainController.initCollections()
+        mainController.getUsername()
+        replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds))
     }
 
     fun register() {
-        val err = Client.Auth.register(login, password)
-        if (err == "") {
-            popNotify(scope, "Registered", false)
-        } else {
-            popNotify(scope, err, true)
+        Client.Auth.register(login, password)?.let {
+            popNotify(scope, it, true)
         }
+        popNotify(scope, "Registered", false)
     }
 }

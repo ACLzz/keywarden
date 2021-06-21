@@ -2,6 +2,7 @@ package fragment
 
 import app.Config
 import app.secondForegroundColor
+import app.whiteColor
 import controller.Client
 import controller.MainController
 import javafx.scene.control.cell.TextFieldListCell
@@ -21,7 +22,7 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
 
         selectedItem.apply {
             setOnMouseClicked {
-                if (selectedItem == null) {
+                if (selectedItem == null || selectedItem.toString().isEmpty()) {
                     return@setOnMouseClicked
                 }
 
@@ -54,6 +55,8 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
                     }
                 }
             }
+
+            placeholder = label("No collections added yet").apply { style { textFill = whiteColor } }
         }
 
         isEditable = true
@@ -70,9 +73,13 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
 
     fun getNextItem() : String? {
         return if (list.selectedItem != null) {
-            list.items[list.items.indexOf(list.selectedItem)+1]
+            val idx = list.items.indexOf(mainController.selectedCollectionProperty.valueSafe)+1
+            if (list.items.size <= 1) {
+                null
+            } else
+                list.items[idx]
         } else {
-            ""
+            null
         }
     }
 

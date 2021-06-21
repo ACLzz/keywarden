@@ -85,7 +85,7 @@ class MainView : View("Keywarden") {
                         var newCollectionName = ""
                         for (i in 1..1000) {
                             newCollectionName = defaultCollectionName + i.toString()
-                            if (newCollectionName in mainController.collectionsProperty.value.toList()) {
+                            if (newCollectionName in mainController.collectionsProperty.toList()) {
                                 continue
                             }
                             break

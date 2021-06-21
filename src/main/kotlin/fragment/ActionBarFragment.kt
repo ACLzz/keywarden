@@ -22,22 +22,19 @@ class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
             }
 
             setOnMouseClicked {
-                Client.Passwords.createPassword(mainController.selectedCollectionProperty.value, "Untitled")
-                fetchAndUpdatePasswords()
+                runAsync {
+                    Client.Passwords.createPassword(mainController.selectedCollectionProperty.valueSafe, "Untitled")
+                } ui { fetchAndUpdatePasswords() }
             }
         }
         this += ActionButton("Remove", TrashIcon()).root.apply {
-            fun del() {
+            setOnMouseClicked {
                 if (mainController.selectedPasswordProperty.value == null)
-                    return
+                    return@setOnMouseClicked
 
                 Client.Passwords.deletePassword(mainController.selectedPasswordProperty.value.id,
                     mainController.selectedCollectionProperty.value)
                 fetchAndUpdatePasswords()
-            }
-
-            setOnMouseClicked {
-                del()
             }
         }
 
@@ -48,7 +45,7 @@ class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
         hbox {
             alignment = Pos.CENTER_RIGHT
             label {
-                this.text = "username"
+                this.text = mainController.usernameProperty.value
                 addClass(ActionBarStyle.username)
             }
             style {
@@ -61,15 +58,19 @@ class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
 class ActionButton(text: String?, icon: Icon, paddingRight: Double = 30.0) : Fragment() {
     override val root = hbox {
         alignment = Pos.CENTER_LEFT
-        if (text != null) {
-            label {
-                this.text = text
-                addClass(ActionBarStyle.actionLabel)
+        hbox {
+            addClass(ActionBarStyle.actionButton)
+            alignment = Pos.CENTER_LEFT
+            if (text != null) {
+                label {
+                    this.text = text
+                    addClass(ActionBarStyle.actionLabel)
+                }
             }
-        }
-        vbox {
-            alignment = Pos.CENTER_RIGHT
-            this += icon
+            vbox {
+                alignment = Pos.CENTER_RIGHT
+                this += icon
+            }
         }
         pane {
             maxWidth = paddingRight

@@ -18,7 +18,7 @@ import java.lang.Exception
 import javax.json.Json
 
 open class ClientModule {
-    lateinit var fetchRequest: ((String, String, List<Pair<String, String>>?) -> FuelJson)
+    lateinit var fetchRequest: ((String, String, p3: List<Pair<String, String>>?) -> FuelJson)
 }
 
 object Client {

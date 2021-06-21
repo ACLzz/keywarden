@@ -11,6 +11,7 @@ import tornadofx.asObservable
 class MainController : Controller() {
     val collectionsProperty = SimpleListProperty<String>()
     val selectedCollectionProperty = SimpleStringProperty()
+    val usernameProperty = SimpleStringProperty()
     var selectedPasswordProperty = SimpleObjectProperty<Password>()
 
     fun initCollections() {
@@ -23,5 +24,14 @@ class MainController : Controller() {
                 selectedCollectionProperty.set(collectionsProperty.value[0])
             }
         }
+    }
+
+    fun getUsername() {
+        val (username, err) = Client.Auth.readUser()
+        err?.let {
+            popNotify(scope, err, true)
+            return
+        }
+        usernameProperty.set(username)
     }
 }

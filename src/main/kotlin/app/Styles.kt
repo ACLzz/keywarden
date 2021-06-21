@@ -10,7 +10,7 @@ val secondForegroundColor = c("#363636")
 val mainBackgroundColor = c("#2A2A2A")
 val accentText = c("#98936E")
 val accentForegroundColor = c("#444444")
-val shadowColor = c("#151515ff")
+val shadowColor = c("#1515155A")
 
 
 class Styles : Stylesheet() {
@@ -40,6 +40,7 @@ class ActionBarStyle : Stylesheet() {
         val bar by cssclass()
         val actionLabel by cssclass()
         val username by cssclass()
+        val actionButton by cssclass()
     }
 
     init {
@@ -54,6 +55,12 @@ class ActionBarStyle : Stylesheet() {
         username {
             textFill = whiteColor
             fontSize = 14.pt
+        }
+        actionButton {
+            and(hover) {
+                backgroundRadius += box(8.px)
+                backgroundColor += shadowColor
+            }
         }
     }
 }

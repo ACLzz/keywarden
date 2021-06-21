@@ -129,7 +129,7 @@ class PasswordsTableFragment : Fragment() {
     }
 
     fun fetchAndUpdatePasswords() {
-        if (mainController.selectedCollectionProperty.value != null && mainController.selectedCollectionProperty.value.isNotEmpty()) {
+        if (mainController.selectedCollectionProperty.value != null) {
             runAsync {
                 Client.Collections.fetchPasswords(mainController.selectedCollectionProperty.value)
             } ui {

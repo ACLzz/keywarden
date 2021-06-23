@@ -2,12 +2,9 @@ package fragment
 
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Pos
-import javafx.geometry.VPos
-import javafx.scene.layout.Priority
 import tornadofx.*
 
 class PopUpFragment : Fragment() {
-    // TODO use stackpane
     val text: String by param()
     val warning: Boolean by param()
     val removeMe = SimpleBooleanProperty(false)

@@ -1,7 +1,6 @@
 package fragment
 
 import app.Config
-import app.main
 import app.secondForegroundColor
 import app.whiteColor
 import controller.Client

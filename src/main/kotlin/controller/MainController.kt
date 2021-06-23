@@ -4,11 +4,9 @@ import fragment.PopUpFragment
 import javafx.beans.property.SimpleListProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import model.Password
 import tornadofx.Controller
-import tornadofx.add
 import tornadofx.asObservable
 
 class MainController : Controller() {

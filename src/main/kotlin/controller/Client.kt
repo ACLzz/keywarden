@@ -11,11 +11,6 @@ import com.github.kittinunf.fuel.httpPut
 import com.github.kittinunf.fuel.json.FuelJson
 import com.github.kittinunf.fuel.json.responseJson
 import com.github.kittinunf.result.Result
-import model.Password
-import model.placeholder
-import org.json.JSONObject
-import java.lang.Exception
-import javax.json.Json
 
 open class ClientModule {
     lateinit var fetchRequest: ((String, String, p3: List<Pair<String, String>>?) -> FuelJson)

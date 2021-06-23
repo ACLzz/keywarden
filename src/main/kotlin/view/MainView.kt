@@ -119,7 +119,6 @@ class MainView : View("Keywarden") {
             }
             this += ActionBar(passwordsTableFragment::fetchAndUpdatePasswords)
             this += passwordsTableFragment
-            // TODO "region" for notifications
         }
     }
 

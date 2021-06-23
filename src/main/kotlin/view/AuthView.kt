@@ -5,11 +5,8 @@ import app.Styles
 import app.whiteColor
 import controller.Client
 import controller.MainController
-import fragment.PopUpFragment
-import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.input.KeyCode
-import javafx.stage.StageStyle
 import tornadofx.*
 
 class AuthView : View("Auth") {

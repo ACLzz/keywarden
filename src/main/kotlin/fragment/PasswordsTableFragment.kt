@@ -5,7 +5,6 @@ import controller.Client
 import controller.MainController
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
-import javafx.scene.control.TableColumn
 import javafx.scene.input.ClipboardContent
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.Border

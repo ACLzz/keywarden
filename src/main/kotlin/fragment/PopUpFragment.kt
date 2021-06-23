@@ -1,40 +1,44 @@
 package fragment
 
-import javafx.stage.StageStyle
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.geometry.Pos
+import javafx.geometry.VPos
+import javafx.scene.layout.Priority
 import tornadofx.*
-
-fun popNotify(scope: Scope, text: String, warning: Boolean) {
-    find<PopUpFragment>(scope, mapOf(PopUpFragment::text to text, PopUpFragment::warning to warning)).openModal(stageStyle = StageStyle.UNDECORATED)
-    if (warning) {
-        println("WARNING: $text")
-    }
-}
 
 class PopUpFragment : Fragment() {
     // TODO use stackpane
     val text: String by param()
     val warning: Boolean by param()
+    val removeMe = SimpleBooleanProperty(false)
 
-    override val root = pane {
+    override val root = vbox {
         style {
-            backgroundColor += if (warning) {
-                c("#9f0000")
-            } else {
-                c("#98936E")
-            }
+            alignment = Pos.BOTTOM_RIGHT
+            paddingAll = 10.0
         }
 
         label {
             text = this@PopUpFragment.text
-            textFill = c("#C7C7C7")
-            paddingAll = 7.0
-        }
-        runLater(5.seconds) {
-            super.close()
-        }
 
-        setOnMouseClicked {
-            super.close()
+            style {
+                textFill = c("#C7C7C7")
+                paddingAll = 7.0
+                backgroundColor += if (warning) {
+                    c("#9f0000")
+                } else {
+                    c("#98936E")
+                }
+            }
+
+            removeWhen(removeMe)
+            runLater(5.seconds) {
+                removeMe.set(true)
+            }
+
+            setOnMouseClicked {
+                removeMe.set(true)
+            }
         }
     }
 }

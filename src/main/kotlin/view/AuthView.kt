@@ -6,7 +6,6 @@ import app.whiteColor
 import controller.Client
 import controller.MainController
 import fragment.PopUpFragment
-import fragment.popNotify
 import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.input.KeyCode
@@ -62,7 +61,7 @@ class AuthView : View("Auth") {
         }
     }
 
-    override val root = vbox {
+    private val mainRoot = vbox {
         prefWidth = bw
         prefHeight = bh
         style {
@@ -155,9 +154,17 @@ class AuthView : View("Auth") {
         }
     }
 
+    override val root = stackpane {
+        this += mainRoot
+
+        mainController.popNotify = { text, warning ->
+            this += mainController.buildNotify(text, warning)
+        }
+    }
+
     fun login() {
         Client.Auth.login(login, password)?.let {
-            popNotify(scope, it, true)
+            mainController.popNotify(it, true)
             return
         }
 
@@ -174,8 +181,9 @@ class AuthView : View("Auth") {
 
     fun register() {
         Client.Auth.register(login, password)?.let {
-            popNotify(scope, it, true)
+            mainController.popNotify(it, true)
+            return
         }
-        popNotify(scope, "Registered", false)
+        mainController.popNotify("Registered", false)
     }
 }

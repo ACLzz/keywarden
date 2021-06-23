@@ -1,11 +1,14 @@
 package controller
 
-import fragment.popNotify
+import fragment.PopUpFragment
 import javafx.beans.property.SimpleListProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.scene.layout.Pane
+import javafx.scene.layout.StackPane
 import model.Password
 import tornadofx.Controller
+import tornadofx.add
 import tornadofx.asObservable
 
 class MainController : Controller() {
@@ -13,11 +16,15 @@ class MainController : Controller() {
     val selectedCollectionProperty = SimpleStringProperty()
     val usernameProperty = SimpleStringProperty()
     var selectedPasswordProperty = SimpleObjectProperty<Password>()
+    var currentRoot = StackPane()
+
+    lateinit var popNotify: (String, Boolean) -> Unit
+    fun buildNotify(text: String, warning: Boolean) = find<PopUpFragment>(PopUpFragment::text to text, PopUpFragment::warning to warning)
 
     fun initCollections() {
         val (colls, err) = Client.Collections.fetchCollections()
         if (err != null) {
-            popNotify(scope, err, true)
+            popNotify(err, true)
         } else {
             collectionsProperty.set(colls.sorted().asObservable())
             if (collectionsProperty.value.isNotEmpty()) {
@@ -29,7 +36,7 @@ class MainController : Controller() {
     fun getUsername() {
         val (username, err) = Client.Auth.readUser()
         err?.let {
-            popNotify(scope, err, true)
+            popNotify(err, true)
             return
         }
         usernameProperty.set(username)

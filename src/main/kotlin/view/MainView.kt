@@ -15,7 +15,7 @@ class MainView : View("Keywarden") {
 
     private val mainController: MainController by inject()
 
-    override val root = hbox {
+    val mainRoot = hbox {
         style {
             backgroundColor += mainBackgroundColor
             textFill = whiteColor
@@ -79,6 +79,7 @@ class MainView : View("Keywarden") {
                     hgrow = Priority.ALWAYS
                 }
 
+
                 this += ActionButton(null, PlusIcon(), 10.0).root.apply {
                     setOnMouseClicked {
                         val defaultCollectionName = "Untitled"
@@ -119,6 +120,14 @@ class MainView : View("Keywarden") {
             this += ActionBar(passwordsTableFragment::fetchAndUpdatePasswords)
             this += passwordsTableFragment
             // TODO "region" for notifications
+        }
+    }
+
+    override val root = stackpane {
+        this += mainRoot
+
+        mainController.popNotify = { text, warning ->
+            this += mainController.buildNotify(text, warning)
         }
     }
 }

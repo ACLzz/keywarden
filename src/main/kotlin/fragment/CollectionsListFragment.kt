@@ -1,6 +1,7 @@
 package fragment
 
 import app.Config
+import app.main
 import app.secondForegroundColor
 import app.whiteColor
 import controller.Client
@@ -28,7 +29,7 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
 
                 val (passwords, err) = Client.Collections.fetchPasswords(selectedItem.toString())
                 if (err != null) {
-                    popNotify(scope, err, true)
+                    mainController.popNotify(err, true)
                 } else {
                     updatePasswords(passwords)
                     mainController.selectedCollectionProperty.set(selectedItem.toString())
@@ -44,7 +45,7 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
                     Client.Collections.updateCollection(selectedItem.toString(), it.newValue)
                 } ui { err ->
                     if (err != null) {
-                        popNotify(scope, err, true)
+                        mainController.popNotify(err, true)
                     } else {
                         val i = mainController.collectionsProperty.value.toMutableList()
                         i[i.indexOf(selectedItem.toString())] = it.newValue
@@ -89,10 +90,13 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
         } ui {
             val (colls, err) = it
             if (err != null) {
-                popNotify(scope, err, true)
+                mainController.popNotify(err, true)
             } else {
+                val isEmptyItems = mainController.collectionsProperty.isEmpty()
                 colls.sort()
                 mainController.collectionsProperty.set(colls.asObservable())
+                if (isEmptyItems)
+                    list.items = mainController.collectionsProperty
                 list.refresh()
             }
         }

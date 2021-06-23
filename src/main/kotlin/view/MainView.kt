@@ -60,7 +60,7 @@ class MainView : View("Keywarden") {
 
             minWidth = cw
             prefHeight = Config.h
-            this += SearchFragment()
+            this += SearchFragment(passwordsTableFragment::updatePasswords)
 
             hbox {
                 style {

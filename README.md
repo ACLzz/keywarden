@@ -8,7 +8,7 @@ Features:
   - Manage Collections
   - Manage Passwords
   - Safe copy passwords to clipboard
-  - Search: `TODO`
+  - Search
   - Symmetric encryption passwords on client-side: `TODO`
   - Update username and password (password won't be updated if your user uses symmetric encryption): `TODO`
 

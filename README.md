@@ -19,7 +19,8 @@ Also you need to install: `java-openjdk-15`, `openjfx-15`, `java-openjre-15`
 git clone https://github.com/ACLzz/keywarden.git && cd keywarden
 gradle install
 ```
-It will build an app and make soft link from `~/.keywarden/bin/keywarden` to `/usr/local/bin` (Of course if you told your sudo password while installation)
+It will build an app and make soft link from `~/.keywarden/bin/keywarden` to `/usr/local/bin` (Of course if you told your sudo password while installation)<br/><br/>
+You also can uninstall Keywarden with `gradle uninstall`.
 
 ## Configuration
 Config file exist in `~/.keywarden` directory. You only need to change `server_url` parameter with url to your <a href="https://github.com/ACLzz/keystore-server">Keystore</a> server.

@@ -15,6 +15,8 @@ class PopUpFragment : Fragment() {
             paddingAll = 10.0
         }
 
+        removeWhen(removeMe)
+
         label {
             text = this@PopUpFragment.text
 
@@ -27,8 +29,6 @@ class PopUpFragment : Fragment() {
                     c("#98936E")
                 }
             }
-
-            removeWhen(removeMe)
             runLater(5.seconds) {
                 removeMe.set(true)
             }

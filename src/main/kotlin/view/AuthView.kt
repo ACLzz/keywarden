@@ -8,6 +8,8 @@ import controller.MainController
 import javafx.geometry.Pos
 import javafx.scene.input.KeyCode
 import tornadofx.*
+import fragment.PromptFragment
+import javafx.stage.StageStyle
 
 class AuthView : View("Auth") {
     private val bw = Config.w * Config.k

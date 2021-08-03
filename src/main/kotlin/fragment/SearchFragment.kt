@@ -16,6 +16,25 @@ class SearchFragment(updatePasswords: KFunction1<List<Password>, Unit>) : Fragme
 
     override val root = hbox {
         addClass(SearchFragmentStyle.style)
+
+        fun search() {
+            val foundPasswords = mutableListOf<Password>()
+            for (collection in mainController.collectionsProperty) {
+                val (passwords, err) = Client.Collections.fetchPasswords(collection)
+                if (err != null) {
+                    mainController.popNotify(err, true)
+                    return
+                }
+                for (password in passwords) {
+                    if (password.title.contains(searchRequest, ignoreCase = true)) {
+                        foundPasswords.add(password)
+                    }
+                }
+            }
+
+            updatePasswords(foundPasswords)
+        }
+
         textfield {
             promptText = "Search"
             fitToParentWidth()
@@ -26,21 +45,7 @@ class SearchFragment(updatePasswords: KFunction1<List<Password>, Unit>) : Fragme
 
             setOnKeyPressed {
                 if (it.code == KeyCode.ENTER) {
-                    val foundPasswords = mutableListOf<Password>()
-                    for (collection in mainController.collectionsProperty) {
-                        val (passwords, err) = Client.Collections.fetchPasswords(collection)
-                        if (err != null) {
-                            mainController.popNotify(err, true)
-                            return@setOnKeyPressed
-                        }
-                        for (password in passwords) {
-                            if (password.title.contains(searchRequest, ignoreCase = true)) {
-                                foundPasswords.add(password)
-                            }
-                        }
-                    }
-
-                    updatePasswords(foundPasswords)
+                    search()
                 }
             }
         }
@@ -51,7 +56,11 @@ class SearchFragment(updatePasswords: KFunction1<List<Password>, Unit>) : Fragme
         }
         vbox {
             alignment = Pos.CENTER_RIGHT
-            this += SearchIcon()
+            this += SearchIcon().root.apply {
+                setOnMouseClicked {
+                    search()
+                }
+            }
         }
     }
 }

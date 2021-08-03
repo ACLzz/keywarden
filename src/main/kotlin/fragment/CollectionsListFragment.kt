@@ -52,6 +52,8 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
                         mainController.collectionsProperty.set(i.asObservable())
                         items = mainController.collectionsProperty
                         refresh()
+
+                        mainController.selectedCollectionProperty.set(it.newValue)
                     }
                 }
             }
@@ -74,7 +76,7 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
     fun getNextItem() : String? {
         return if (list.selectedItem != null) {
             val idx = list.items.indexOf(mainController.selectedCollectionProperty.valueSafe)+1
-            if (list.items.size <= 1) {
+            if (list.items.size <= idx) {
                 null
             } else
                 list.items[idx]

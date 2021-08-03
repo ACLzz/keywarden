@@ -7,7 +7,7 @@ import javafx.geometry.Pos
 import javafx.scene.layout.Priority
 import tornadofx.*
 
-class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
+class ActionBar() : Fragment() {
     private val mainController: MainController by inject()
 
     override val root = hbox {
@@ -24,17 +24,14 @@ class ActionBar(private val fetchAndUpdatePasswords: () -> Unit) : Fragment() {
             setOnMouseClicked {
                 runAsync {
                     Client.Passwords.createPassword(mainController.selectedCollectionProperty.valueSafe, "Untitled")
-                } ui { fetchAndUpdatePasswords() }
+                } ui { mainController.fetchAndUpdatePasswords() }
             }
         }
         this += ActionButton("Remove", TrashIcon()).root.apply {
             setOnMouseClicked {
                 if (mainController.selectedPasswordProperty.value == null)
                     return@setOnMouseClicked
-
-                Client.Passwords.deletePassword(mainController.selectedPasswordProperty.value.id,
-                    mainController.selectedCollectionProperty.value)
-                fetchAndUpdatePasswords()
+                mainController.deleteSelectedPassword()
             }
         }
 

@@ -41,14 +41,14 @@ class MainView : View("Keywarden") {
         val passwordsTableFragment = PasswordsTableFragment()
         val collectionsList = CollectionsListFragment(passwordsTableFragment::updatePasswords)
 
+        mainController.fetchAndUpdatePasswords = passwordsTableFragment::fetchAndUpdatePasswords
+
         setOnKeyPressed {
             if (it.code == KeyCode.DELETE) {
                 if (mainController.selectedPasswordProperty.value == null)
                     return@setOnKeyPressed
 
-                Client.Passwords.deletePassword(mainController.selectedPasswordProperty.value.id,
-                    mainController.selectedCollectionProperty.value)
-                passwordsTableFragment.fetchAndUpdatePasswords()
+                mainController.deleteSelectedPassword()
             }
         }
 
@@ -101,10 +101,17 @@ class MainView : View("Keywarden") {
                         if (mainController.selectedCollectionProperty.value == null)
                             return@setOnMouseClicked
 
-                        Client.Collections.deleteCollection(mainController.selectedCollectionProperty.value)
-                        mainController.selectedCollectionProperty.set(collectionsList.getNextItem())
-                        collectionsList.fetchAndUpdateCollections()
-                        passwordsTableFragment.fetchAndUpdatePasswords()
+                        mainController.popPrompt(
+                            "Do you really want to delete ${mainController.selectedCollectionProperty.value} collection?",
+                            arrayOf("Yes", "No"), false
+                        ) { choice ->
+                            if (choice == "Yes") {
+                                Client.Collections.deleteCollection(mainController.selectedCollectionProperty.value)
+                                mainController.selectedCollectionProperty.set(collectionsList.getNextItem())
+                                collectionsList.fetchAndUpdateCollections()
+                                passwordsTableFragment.fetchAndUpdatePasswords()
+                            }
+                        }
                     }
                 }
             }
@@ -117,7 +124,7 @@ class MainView : View("Keywarden") {
                 vgrow = Priority.ALWAYS
                 hgrow = Priority.ALWAYS
             }
-            this += ActionBar(passwordsTableFragment::fetchAndUpdatePasswords)
+            this += ActionBar()
             this += passwordsTableFragment
         }
     }

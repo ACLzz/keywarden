@@ -1,10 +1,12 @@
 package controller
 
 import fragment.PopUpFragment
+import fragment.PromptFragment
 import javafx.beans.property.SimpleListProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.layout.StackPane
+import javafx.stage.StageStyle
 import model.Password
 import tornadofx.Controller
 import tornadofx.asObservable
@@ -16,8 +18,19 @@ class MainController : Controller() {
     var selectedPasswordProperty = SimpleObjectProperty<Password>()
     var currentRoot = StackPane()
 
+    lateinit var fetchAndUpdatePasswords: () -> Unit
+
     lateinit var popNotify: (String, Boolean) -> Unit
     fun buildNotify(text: String, warning: Boolean) = find<PopUpFragment>(PopUpFragment::text to text, PopUpFragment::warning to warning)
+
+    fun popPrompt(text: String, choices: Array<String>, hasInput: Boolean, handler: (String) -> Unit) {
+        find<PromptFragment>(
+            PromptFragment::text to text,
+            PromptFragment::choices to choices,
+            PromptFragment::hasInput to hasInput,
+            PromptFragment::handler to handler,
+        ).openModal(stageStyle = StageStyle.UTILITY)
+    }
 
     fun initCollections() {
         val (colls, err) = Client.Collections.fetchCollections()
@@ -38,5 +51,18 @@ class MainController : Controller() {
             return
         }
         usernameProperty.set(username)
+    }
+
+    fun deleteSelectedPassword() {
+        popPrompt("Do you really want to delete ${selectedPasswordProperty.value.title}?", arrayOf("Yes", "No"), false
+        ) { choice ->
+            if (choice == "Yes") {
+                Client.Passwords.deletePassword(
+                    selectedPasswordProperty.value.id,
+                    selectedCollectionProperty.value
+                )
+                fetchAndUpdatePasswords()
+            }
+        }
     }
 }

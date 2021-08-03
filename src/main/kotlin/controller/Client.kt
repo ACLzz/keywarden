@@ -49,7 +49,7 @@ object Client {
         if (result is Result.Failure) {
             var errStr: String
             if (response.statusCode == -1) {
-                errStr = "{\"error\": \"No connection to server\"}"
+                errStr = "{\"error\": \"${result.error.message}\"}"
             } else {
                 errStr = String(response.data)
             }

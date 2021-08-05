@@ -3,6 +3,7 @@ package fragment
 import app.foregroundColor
 import app.secondForegroundColor
 import javafx.geometry.Pos
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import tornadofx.*
 
@@ -10,7 +11,8 @@ class PromptFragment : Fragment() {
     val text: String by param()
     val choices: Array<String> by param()
     val hasInput: Boolean by param()
-    val handler: (String) -> Unit by param()
+    val handler: (String, String) -> Unit by param()
+    private var promptText = ""
 
     override val root = vbox {
         style {
@@ -35,7 +37,23 @@ class PromptFragment : Fragment() {
         }
 
         if (hasInput) {
-            textfield {  }
+            textfield {
+                setOnKeyTyped {
+                    this@PromptFragment.promptText = this.text
+                }
+
+                setOnKeyPressed {
+                    if (it.code == KeyCode.ENTER) {
+                        var choice = ""
+                        if (choices.isNotEmpty()) {
+                            choice = choices[0]
+                        }
+
+                        handler(choice, this@PromptFragment.promptText)
+                        this@PromptFragment.close()
+                    }
+                }
+            }
         }
 
         if (choices.isNotEmpty()) {
@@ -57,7 +75,7 @@ class PromptFragment : Fragment() {
                         }
                         text = it
                         action {
-                            handler(it)
+                            handler(it, this@PromptFragment.promptText)
                             this@PromptFragment.close()
                         }
                     }

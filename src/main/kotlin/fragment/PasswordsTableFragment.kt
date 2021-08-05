@@ -40,6 +40,7 @@ class PasswordsTableFragment : Fragment() {
         fun buildColumn(columnTitle: String, prop: KProperty1<Password, ObservableValue<String>>,
                         weight: Int, placeholder: Boolean = true) = column(columnTitle, prop).apply {
             makeEditable()
+
             setOnEditCommit {
                 val rowId = it.tablePosition.row
 

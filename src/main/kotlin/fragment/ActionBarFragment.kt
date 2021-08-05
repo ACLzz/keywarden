@@ -22,9 +22,17 @@ class ActionBar() : Fragment() {
             }
 
             setOnMouseClicked {
-                runAsync {
-                    Client.Passwords.createPassword(mainController.selectedCollectionProperty.valueSafe, "Untitled")
-                } ui { mainController.fetchAndUpdatePasswords() }
+                mainController.popPrompt("How would you call your new password?", arrayOf("Create", "Don't create"), true
+                ) { choice, title ->
+                    if (choice == "Create") {
+                        runAsync {
+                            Client.Passwords.createPassword(
+                                mainController.selectedCollectionProperty.valueSafe,
+                                title
+                            )
+                        } ui { mainController.fetchAndUpdatePasswords() }
+                    }
+                }
             }
         }
         this += ActionButton("Remove", TrashIcon()).root.apply {

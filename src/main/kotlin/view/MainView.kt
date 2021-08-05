@@ -12,10 +12,12 @@ class MainView : View("Keywarden") {
     private val bw = Config.w * Config.k
     private val bh = Config.h * Config.k
     private val cw = 280.0
-
     private val mainController: MainController by inject()
 
-    val mainRoot = hbox {
+    private val passwordsTableFragment = PasswordsTableFragment()
+    private val collectionsList = CollectionsListFragment(passwordsTableFragment::updatePasswords)
+
+    private val mainRoot = hbox {
         style {
             backgroundColor += mainBackgroundColor
             textFill = whiteColor
@@ -38,8 +40,6 @@ class MainView : View("Keywarden") {
         visibleProperty().onChange {
             currentWindow?.sizeToScene()
         }
-        val passwordsTableFragment = PasswordsTableFragment()
-        val collectionsList = CollectionsListFragment(passwordsTableFragment::updatePasswords)
 
         mainController.fetchAndUpdatePasswords = passwordsTableFragment::fetchAndUpdatePasswords
 
@@ -82,18 +82,18 @@ class MainView : View("Keywarden") {
 
                 this += ActionButton(null, PlusIcon(), 10.0).root.apply {
                     setOnMouseClicked {
-                        val defaultCollectionName = "Untitled"
-                        var newCollectionName = ""
-                        for (i in 1..1000) {
-                            newCollectionName = defaultCollectionName + i.toString()
-                            if (newCollectionName in mainController.collectionsProperty.toList()) {
-                                continue
-                            }
-                            break
-                        }
+                        mainController.popPrompt("How would you call your new collection?", arrayOf("Create", "Don't create"), true
+                        ) { choice, title ->
+                            if (choice == "Create") {
+                                val err = Client.Collections.createCollection(title)
+                                if (err != null) {
+                                    mainController.popNotify(err, true)
+                                    return@popPrompt
+                                }
 
-                        Client.Collections.createCollection(newCollectionName)
-                        collectionsList.fetchAndUpdateCollections()
+                                collectionsList.fetchAndUpdateCollections()
+                            }
+                        }
                     }
                 }
                 this += ActionButton(null, TrashIcon()).root.apply {
@@ -104,7 +104,7 @@ class MainView : View("Keywarden") {
                         mainController.popPrompt(
                             "Do you really want to delete ${mainController.selectedCollectionProperty.value} collection?",
                             arrayOf("Yes", "No"), false
-                        ) { choice ->
+                        ) { choice, _ ->
                             if (choice == "Yes") {
                                 Client.Collections.deleteCollection(mainController.selectedCollectionProperty.value)
                                 mainController.selectedCollectionProperty.set(collectionsList.getNextItem())

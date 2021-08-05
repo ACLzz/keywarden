@@ -14,7 +14,7 @@ class PopUpFragment : Fragment() {
             alignment = Pos.BOTTOM_RIGHT
             paddingAll = 10.0
         }
-
+        isMouseTransparent = true
         removeWhen(removeMe)
 
         label {
@@ -30,10 +30,6 @@ class PopUpFragment : Fragment() {
                 }
             }
             runLater(5.seconds) {
-                removeMe.set(true)
-            }
-
-            setOnMouseClicked {
                 removeMe.set(true)
             }
         }

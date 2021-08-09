@@ -6,6 +6,8 @@ import app.whiteColor
 import controller.Client
 import controller.MainController
 import javafx.scene.control.cell.TextFieldListCell
+import javafx.scene.input.KeyCode
+import javafx.scene.input.TransferMode
 import javafx.scene.layout.Priority
 import model.Password
 import tornadofx.*
@@ -19,50 +21,117 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
             backgroundColor += secondForegroundColor
         }
         prefHeight = Config.h
+        placeholder = label("No collections added yet").apply { style { textFill = whiteColor } }
 
-        selectedItem.apply {
-            setOnMouseClicked {
-                if (selectedItem == null || selectedItem.toString().isEmpty()) {
-                    return@setOnMouseClicked
-                }
+        isEditable = true
+        cellFactory = TextFieldListCell.forListView()
 
-                val (passwords, err) = Client.Collections.fetchPasswords(selectedItem.toString())
-                if (err != null) {
-                    mainController.popNotify(err, true)
-                } else {
-                    updatePasswords(passwords)
-                    mainController.selectedCollectionProperty.set(selectedItem.toString())
+        cellFormat { t ->
+            fun buildDefaultGraphic(text: String?) = label {
+                this.text = text
+                style {
+                    textFill = whiteColor
                 }
             }
 
-            setOnEditCommit {
-                if (items[it.index] == it.newValue) {
-                    return@setOnEditCommit
-                }
+            graphic = buildDefaultGraphic(t)
 
-                runAsync {
-                    Client.Collections.updateCollection(selectedItem.toString(), it.newValue)
-                } ui { err ->
-                    if (err != null) {
-                        mainController.popNotify(err, true)
-                    } else {
-                        val i = mainController.collectionsProperty.value.toMutableList()
-                        i[i.indexOf(selectedItem.toString())] = it.newValue
-                        i.sort()
-                        mainController.collectionsProperty.set(i.asObservable())
-                        items = mainController.collectionsProperty
-                        refresh()
+            onDoubleClick {
+                graphic = textfield {
+                    text = t
+                    requestFocus()
 
-                        mainController.selectedCollectionProperty.set(it.newValue)
+                    setOnKeyPressed {
+                        if (it.code != KeyCode.ENTER) {
+                            return@setOnKeyPressed
+                        }
+
+                        if( t == text) {
+                            graphic = buildDefaultGraphic(text)
+                            return@setOnKeyPressed
+                        }
+
+                        runAsync {
+                            Client.Collections.updateCollection(t, text)
+                        } ui { err ->
+                            var newText = t
+                            if (err != null) {
+                                mainController.popNotify(err, true)
+                            } else {
+                                val i = mainController.collectionsProperty.value.toMutableList()
+                                i[i.indexOf(t)] = text
+                                i.sort()
+                                mainController.collectionsProperty.set(i.asObservable())
+                                items = mainController.collectionsProperty
+                                refresh()
+
+                                mainController.selectedCollectionProperty.set(text)
+                                newText = text
+                            }
+
+                            graphic = buildDefaultGraphic(newText)
+                        }
                     }
                 }
             }
 
-            placeholder = label("No collections added yet").apply { style { textFill = whiteColor } }
-        }
+            setOnDragDropped {
+                var success = false
+                if (it.dragboard.hasString() && t != mainController.selectedCollectionProperty.value) {
+                    success = true
+                    val pId = it.dragboard.string.toInt()
 
-        isEditable = true
-        setCellFactory(TextFieldListCell.forListView())
+                    runAsync { Client.Passwords.updatePassword(
+                        pId,
+                        mainController.selectedCollectionProperty.value,
+                        coll=t
+                    )}.ui { err ->
+                        if (err != null) {
+                            mainController.popNotify(err, true)
+                        } else {
+                            mainController.fetchAndUpdatePasswords()
+                        }
+                    }
+                }
+
+                it.isDropCompleted = success
+                it.consume()
+            }
+
+            setOnDragEntered {
+                graphic = buildDefaultGraphic(t).apply {
+                    style(append=true) {
+                        textFill = c("#ffffff")
+                    }
+                }
+            }
+
+            setOnDragExited {
+                graphic = buildDefaultGraphic(t)
+            }
+
+            setOnDragOver {
+                if (it.dragboard.hasString()) {
+                    it.acceptTransferModes(TransferMode.MOVE)
+                }
+                it.consume()
+            }
+
+            setOnMouseClicked {
+                if (t.isEmpty()) {
+                    return@setOnMouseClicked
+                }
+
+                val (passwords, err) = Client.Collections.fetchPasswords(t)
+                if (err != null) {
+                    mainController.popNotify(err, true)
+                } else {
+                    updatePasswords(passwords)
+                    mainController.selectedCollectionProperty.set(t)
+                }
+                it.consume()
+            }
+        }
     }
 
     override val root = vbox {
@@ -70,6 +139,7 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
             backgroundColor += secondForegroundColor
             vgrow = Priority.ALWAYS
         }
+
         this += list
     }
 

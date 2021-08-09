@@ -7,6 +7,7 @@ import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.scene.input.ClipboardContent
 import javafx.scene.input.MouseButton
+import javafx.scene.input.TransferMode
 import javafx.scene.layout.Border
 import javafx.scene.layout.Priority
 import model.Password
@@ -95,6 +96,14 @@ class PasswordsTableFragment : Fragment() {
                         else -> titl
                     })
                     clipboard.setContent(data)
+                }
+
+                setOnDragDetected {
+                    val db = this@tableview.startDragAndDrop(*TransferMode.ANY)
+                    val cp = ClipboardContent()
+                    val id = passwords[selectedCell!!.row].id.toString()
+                    cp.putString(id)
+                    db.setContent(cp)
                 }
             }
         }

@@ -79,7 +79,6 @@ class MainView : View("Keywarden") {
                     hgrow = Priority.ALWAYS
                 }
 
-
                 this += ActionButton(null, PlusIcon(), 10.0).root.apply {
                     setOnMouseClicked {
                         mainController.popPrompt("How would you call your new collection?", arrayOf("Create", "Don't create"), true
@@ -96,6 +95,7 @@ class MainView : View("Keywarden") {
                         }
                     }
                 }
+
                 this += ActionButton(null, TrashIcon()).root.apply {
                     setOnMouseClicked {
                         if (mainController.selectedCollectionProperty.value == null)
@@ -115,6 +115,7 @@ class MainView : View("Keywarden") {
                     }
                 }
             }
+
             this += collectionsList
         }
 

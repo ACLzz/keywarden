@@ -36,7 +36,7 @@ class PasswordsModule : ClientModule() {
 
     fun updatePassword(id: Int, collection: String,
                        title: String? = null, login: String? = null,
-                       password: String? = null, email: String? = null): String? {
+                       password: String? = null, email: String? = null, coll: String? = null): String? {
         var data = listOf<Pair<String, String>>()
 
         when {
@@ -51,6 +51,9 @@ class PasswordsModule : ClientModule() {
             }
             email != null -> {
                 data = data + Pair("email", email)
+            }
+            coll != null -> {
+                data = data + Pair("collection", coll)
             }
         }
 

@@ -32,6 +32,7 @@ Config file exist in `~/.keywarden` directory. You only need to change `server_u
 ## Hotkeys
 - DEL button after select row in passwords table: deletes this password
 - Right mouse click on cell in passwords table: copies data to clipboard without showing content of that cell
+- Click on password -> drag it to another collection: your password changed collection
 
 ## Used technologies
 - `Gradle` as build tool

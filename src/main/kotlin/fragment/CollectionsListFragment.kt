@@ -11,6 +11,7 @@ import javafx.scene.input.TransferMode
 import javafx.scene.layout.Priority
 import model.Password
 import tornadofx.*
+import java.time.LocalDateTime
 import kotlin.reflect.KFunction1
 
 class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>) : Fragment() {
@@ -36,7 +37,28 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
 
             graphic = buildDefaultGraphic(t)
 
-            onDoubleClick {
+            var lastClick = LocalDateTime.MIN
+            val deltaMilliSecs = fun(dateA: LocalDateTime, dateB: LocalDateTime): Int {
+                val getMilliSecs = fun(date: LocalDateTime) =
+                    (date.hour * 3600 + date.minute * 60 + date.second) * 1000 + date.nano / 1000000
+                return getMilliSecs(dateA) - getMilliSecs(dateB)
+            }
+
+            val oneClick = fun() {
+                if (t.isEmpty()) {
+                    return
+                }
+
+                val (passwords, err) = Client.Collections.fetchPasswords(t)
+                if (err != null) {
+                    mainController.popNotify(err, true)
+                } else {
+                    updatePasswords(passwords)
+                    mainController.selectedCollectionProperty.set(t)
+                }
+            }
+
+            val doubleClick = fun() {
                 graphic = textfield {
                     text = t
                     requestFocus()
@@ -73,6 +95,16 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
                         }
                     }
                 }
+            }
+
+            setOnMouseClicked {
+                val now = LocalDateTime.now()
+                if (deltaMilliSecs(now, lastClick) < 500) {
+                    doubleClick()
+                } else {
+                    oneClick()
+                }
+                lastClick = now
             }
 
             setOnDragDropped {
@@ -113,21 +145,6 @@ class CollectionsListFragment(updatePasswords: KFunction1<List<Password>, Unit>)
             setOnDragOver {
                 if (it.dragboard.hasString()) {
                     it.acceptTransferModes(TransferMode.MOVE)
-                }
-                it.consume()
-            }
-
-            setOnMouseClicked {
-                if (t.isEmpty()) {
-                    return@setOnMouseClicked
-                }
-
-                val (passwords, err) = Client.Collections.fetchPasswords(t)
-                if (err != null) {
-                    mainController.popNotify(err, true)
-                } else {
-                    updatePasswords(passwords)
-                    mainController.selectedCollectionProperty.set(t)
                 }
                 it.consume()
             }

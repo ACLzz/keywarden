@@ -1,15 +1,23 @@
 package controller
 
-import model.placeholder
 import java.lang.Exception
 
+val randomPlaceholder: String get() {
+    val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
+    return (1..(15..30).random())
+        .map { charset.random() }
+        .joinToString("")
+}
+
 class PasswordsModule : ClientModule() {
-    fun createPassword(collection: String, title: String, login: String = placeholder, password: String = placeholder, email: String = placeholder) : String? {
-        val result = super.fetchRequest("collection/$collection", "POST", listOf(
-            Pair("title", title),
-            Pair("login", login),
-            Pair("password", password),
-            Pair("email", email)
+    fun createPassword(collection: String, title: String,
+                       login: String = randomPlaceholder, password: String = randomPlaceholder,
+                       email: String = randomPlaceholder) : String? {
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}", "POST", listOf(
+            Pair("title", Client.encryptIt(title)),
+            Pair("login", Client.encryptIt(login)),
+            Pair("password", Client.encryptIt(password)),
+            Pair("email", Client.encryptIt(email))
         ))
 
         return try {
@@ -21,14 +29,19 @@ class PasswordsModule : ClientModule() {
     }
 
     fun getPassword(id: Int, collection: String) : Pair<List<String>, String?> {
-        val result = super.fetchRequest("collection/$collection/$id", "GET", null)
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}/$id", "GET", null)
 
         return try {
             val err = result.obj().get("error")
             Pair(listOf(), err.toString())
         }catch (e: Exception) {
-            val _data = result.obj()
-            val data = listOf(_data.getString("title"), _data.getString("login"), _data.getString("email"), _data.getString("password"))
+            val _data = listOf(result.obj().getString("title"), result.obj().getString("login"),
+                result.obj().getString("email"), result.obj().getString("password"))
+
+            val data = arrayListOf<String>()
+            _data.forEach {
+                data.add(Client.decryptIt(it))
+            }
 
             Pair(data, null)
         }
@@ -37,27 +50,17 @@ class PasswordsModule : ClientModule() {
     fun updatePassword(id: Int, collection: String,
                        title: String? = null, login: String? = null,
                        password: String? = null, email: String? = null, coll: String? = null): String? {
-        var data = listOf<Pair<String, String>>()
+        val data = arrayListOf<Pair<String, String>>()
 
         when {
-            title != null -> {
-                data = data + Pair("title", title)
-            }
-            login != null -> {
-                data = data + Pair("login", login)
-            }
-            password != null -> {
-                data = data + Pair("password", password)
-            }
-            email != null -> {
-                data = data + Pair("email", email)
-            }
-            coll != null -> {
-                data = data + Pair("collection", coll)
-            }
+            title != null -> data.add(Pair("title", Client.encryptIt(title)))
+            login != null -> data.add(Pair("login", Client.encryptIt(login)))
+            password != null -> data.add(Pair("password", Client.encryptIt(password)))
+            email != null -> data.add(Pair("email", Client.encryptIt(email)))
+            coll != null -> data.add(Pair("collection", Client.encryptIt(coll).toBase58()))
         }
 
-        val result = super.fetchRequest("collection/$collection/$id", "PUT", data)
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}/$id", "PUT", data)
 
         return try {
             val err = result.obj().get("error")
@@ -68,7 +71,7 @@ class PasswordsModule : ClientModule() {
     }
 
     fun deletePassword(id: Int, collection: String) : String? {
-        val result = super.fetchRequest("collection/$collection/$id", "DELETE", null)
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}/$id", "DELETE", null)
 
         return try {
             val err = result.obj().get("error")

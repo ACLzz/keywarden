@@ -20,7 +20,9 @@ class CollectionsModule : ClientModule() {
             }
 
             val collections: MutableList<String> = mutableListOf()
-            collections.addAll(_collections)
+            _collections.forEach {
+                collections.add(Client.decryptIt(it.fromBase58()))
+            }
             Pair(collections, null)
         }
     }
@@ -30,7 +32,7 @@ class CollectionsModule : ClientModule() {
             return Pair(listOf(), null)
         }
 
-        val result = super.fetchRequest("collection/$collection", "GET", null)
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}", "GET", null)
 
         return try {
             val err = result.obj().get("error")
@@ -46,7 +48,7 @@ class CollectionsModule : ClientModule() {
             var collections: List<Password> = listOf()
             for (coll in _collections) {
                 val password = Password(
-                    coll["title"] as String, placeholder, placeholder, placeholder, coll["id"] as Int
+                    Client.decryptIt(coll["title"] as String), placeholder, placeholder, placeholder, coll["id"] as Int
                 )
                 collections = collections + password
             }
@@ -56,7 +58,7 @@ class CollectionsModule : ClientModule() {
 
     fun createCollection(title: String) : String? {
         val result = super.fetchRequest("collection", "POST", listOf(
-            Pair("title", title),
+            Pair("title", Client.encryptIt(title).toBase58()),
         ))
 
         return try {
@@ -72,11 +74,11 @@ class CollectionsModule : ClientModule() {
 
         when {
             title != null -> {
-                data = data + Pair("title", title)
+                data = data + Pair("title", Client.encryptIt(title).toBase58())
             }
         }
 
-        val result = super.fetchRequest("collection/$collection", "PUT", data)
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}", "PUT", data)
 
         return try {
             val err = result.obj().get("error")
@@ -87,7 +89,7 @@ class CollectionsModule : ClientModule() {
     }
 
     fun deleteCollection(collection: String) : String? {
-        val result = super.fetchRequest("collection/$collection", "DELETE", null)
+        val result = super.fetchRequest("collection/${Client.encryptIt(collection).toBase58()}", "DELETE", null)
 
         return try {
             val err = result.obj().get("error")

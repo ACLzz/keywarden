@@ -6,7 +6,7 @@ class AuthModule : ClientModule() {
     fun register(login: String, password: String): String? {
         val result = super.fetchRequest(
             "auth/", "POST",
-            listOf(Pair("login", login), Pair("password", password))
+            listOf(Pair("login", login), Pair("password", password.hashMe("SHA-512")))
         )
 
         return try {
@@ -20,7 +20,7 @@ class AuthModule : ClientModule() {
     fun login(login: String, password: String): String? {
         val result = super.fetchRequest(
             "auth/login", "POST",
-            listOf(Pair("login", login), Pair("password", password))
+            listOf(Pair("login", login), Pair("password", password.hashMe("SHA-512")))
         )
 
         return try {
@@ -29,6 +29,7 @@ class AuthModule : ClientModule() {
         }catch (e: Exception) {
             try {
                 Client.settoken(result.obj().get("token").toString())
+                Client.setpassword(password)
                 null
             } catch (e: Exception) {
                 "invalid credentials"
@@ -64,7 +65,7 @@ class AuthModule : ClientModule() {
             data.add(Pair("login", login))
         }
         password?.let {
-            data.add(Pair("password", password))
+            data.add(Pair("password", password.hashMe("SHA-512")))
         }
         val result = super.fetchRequest("auth/", "PUT", data)
 

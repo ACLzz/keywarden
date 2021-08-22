@@ -9,7 +9,7 @@ Features:
   - Manage Passwords
   - Safe copy passwords to clipboard
   - Search
-  - Symmetric encryption passwords on client-side: `TODO`
+  - Symmetric encryption passwords on client-side
   - Update username and password (password won't be updated if your user uses symmetric encryption): `TODO`
 
 ## Installation

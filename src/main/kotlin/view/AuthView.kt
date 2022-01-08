@@ -2,6 +2,7 @@ package view
 
 import app.Config
 import app.Styles
+import app.mainBackgroundColor
 import app.whiteColor
 import controller.Client
 import controller.MainController
@@ -175,7 +176,7 @@ class AuthView : View("Auth") {
 
         mainController.initCollections()
         mainController.getUsername()
-        replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds))
+        replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds, color = mainBackgroundColor))
     }
 
     fun register() {

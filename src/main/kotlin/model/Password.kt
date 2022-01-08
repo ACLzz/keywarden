@@ -8,6 +8,7 @@ const val placeholder = "********"
 
 class Password(
     title: String,
+    collection: String,
     login: String = placeholder,
     email: String = placeholder,
     password: String = placeholder,
@@ -15,6 +16,9 @@ class Password(
 ) {
     val titleProperty = SimpleStringProperty(title)
     var title by titleProperty
+
+    val collectionProperty = SimpleStringProperty(collection)
+    var collection by collectionProperty
 
     val loginProperty = SimpleStringProperty(login)
     var login by loginProperty

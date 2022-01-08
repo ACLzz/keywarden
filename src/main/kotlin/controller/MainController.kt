@@ -57,7 +57,7 @@ class MainController : Controller() {
             if (choice == "Yes") {
                 Client.Passwords.deletePassword(
                     selectedPasswordProperty.value.id,
-                    selectedCollectionProperty.value
+                    selectedPasswordProperty.value.collection
                 )
                 fetchAndUpdatePasswords()
             }

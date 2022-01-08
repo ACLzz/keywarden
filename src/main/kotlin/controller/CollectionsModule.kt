@@ -48,7 +48,7 @@ class CollectionsModule : ClientModule() {
             var collections: List<Password> = listOf()
             for (coll in _collections) {
                 val password = Password(
-                    Client.decryptIt(coll["title"] as String), placeholder, placeholder, placeholder, coll["id"] as Int
+                    Client.decryptIt(coll["title"] as String), collection, placeholder, placeholder, placeholder, coll["id"] as Int
                 )
                 collections = collections + password
             }

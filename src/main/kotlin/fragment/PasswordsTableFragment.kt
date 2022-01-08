@@ -47,10 +47,10 @@ class PasswordsTableFragment : Fragment() {
 
                 runAsync {
                     when (columnTitle.lowercase()) {
-                        "title" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, title=it.newValue)
-                        "login" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, login=it.newValue)
-                        "password" -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, password=it.newValue)
-                        else -> Client.Passwords.updatePassword(it.rowValue.id, mainController.selectedCollectionProperty.value, email=it.newValue)
+                        "title" -> Client.Passwords.updatePassword(it.rowValue.id, it.rowValue.collection, title=it.newValue)
+                        "login" -> Client.Passwords.updatePassword(it.rowValue.id, it.rowValue.collection, login=it.newValue)
+                        "password" -> Client.Passwords.updatePassword(it.rowValue.id, it.rowValue.collection, password=it.newValue)
+                        else -> Client.Passwords.updatePassword(it.rowValue.id, it.rowValue.collection, email=it.newValue)
                     }
                 } ui { err ->
                     if (err != null) {
@@ -81,7 +81,8 @@ class PasswordsTableFragment : Fragment() {
         selectedCell.apply {
             setOnMouseClicked {
                 if (it.button == MouseButton.SECONDARY && selectedCell != null) {
-                    val (resp, err) = Client.Passwords.getPassword(passwords[selectedCell!!.row].id, mainController.selectedCollectionProperty.valueSafe)
+                    val (resp, err) = Client.Passwords.getPassword(passwords[selectedCell!!.row].id,
+                        passwords[selectedCell!!.row].collection)
                     err?.let {
                         mainController.popNotify(err, true)
                         return@setOnMouseClicked
@@ -124,7 +125,7 @@ class PasswordsTableFragment : Fragment() {
     fun updateProperty(row: Int, property: String) {
         val passwordObj = passwords[row]
 
-        val (data, err) = Client.Passwords.getPassword(passwordObj.id, mainController.selectedCollectionProperty.value)
+        val (data, err) = Client.Passwords.getPassword(passwordObj.id, passwordObj.collection)
         if (err != null) {
             mainController.popNotify(err, true)
             return

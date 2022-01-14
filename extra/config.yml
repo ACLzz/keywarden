@@ -1,3 +1,4 @@
 server_url: "http://127.0.0.1:8402/"
 save_username: false
 saved_username: ""
+session_time: 3600

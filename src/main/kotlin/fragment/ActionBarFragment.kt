@@ -6,9 +6,11 @@ import controller.MainController
 import javafx.geometry.Pos
 import javafx.scene.layout.Priority
 import tornadofx.*
+import kotlin.reflect.KFunction0
 
 class ActionBar() : Fragment() {
     private val mainController: MainController by inject()
+    lateinit var logout: KFunction0<UInt>
 
     override val root = hbox {
         val h = 50.0
@@ -52,15 +54,23 @@ class ActionBar() : Fragment() {
             label {
                 this.text = mainController.usernameProperty.value
                 addClass(ActionBarStyle.username)
+                style {
+                    paddingRight = 15
+                }
+            }
+            this += ActionButton("Logout", null).root.apply {
+                setOnMouseClicked {
+                    logout()
+                }
             }
             style {
-                paddingRight = 15.0
+                paddingRight = -15
             }
         }
     }
 }
 
-class ActionButton(text: String?, icon: Icon, paddingRight: Double = 30.0) : Fragment() {
+class ActionButton(text: String?, icon: Icon?, paddingRight: Double = 30.0) : Fragment() {
     override val root = hbox {
         alignment = Pos.CENTER_LEFT
         hbox {
@@ -72,9 +82,12 @@ class ActionButton(text: String?, icon: Icon, paddingRight: Double = 30.0) : Fra
                     addClass(ActionBarStyle.actionLabel)
                 }
             }
-            vbox {
-                alignment = Pos.CENTER_RIGHT
-                this += icon
+
+            icon?.let {
+                vbox {
+                    alignment = Pos.CENTER_RIGHT
+                    this += it
+                }
             }
         }
         pane {

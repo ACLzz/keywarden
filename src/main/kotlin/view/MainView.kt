@@ -8,6 +8,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import tornadofx.*
 
+
 class MainView : View("Keywarden") {
     private val bw = Config.w * Config.k
     private val bh = Config.h * Config.k
@@ -125,9 +126,17 @@ class MainView : View("Keywarden") {
                 vgrow = Priority.ALWAYS
                 hgrow = Priority.ALWAYS
             }
-            this += ActionBar()
+            this += ActionBar().apply {
+                this.logout = this@MainView::logout
+            }
             this += passwordsTableFragment
         }
+    }
+
+    private fun logout(): UInt {
+        Client.Auth.logout()
+        replaceWith<AuthView>(transition = ViewTransition.FadeThrough(1.5.seconds, color = mainBackgroundColor))
+        return 0u
     }
 
     override val root = stackpane {
@@ -135,6 +144,13 @@ class MainView : View("Keywarden") {
 
         mainController.popNotify = { text, warning ->
             this += mainController.buildNotify(text, warning)
+        }
+
+        runAsync {
+            Thread.sleep(Config.sessionTime)
+        } ui {
+            println(Config.sessionTime)
+            logout()
         }
     }
 }

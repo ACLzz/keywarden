@@ -11,6 +11,7 @@ import javafx.scene.input.KeyCode
 import tornadofx.*
 import fragment.PromptFragment
 import javafx.stage.StageStyle
+import java.util.*
 
 class AuthView : View("Auth") {
     private val bw = Config.w * Config.k
@@ -176,7 +177,12 @@ class AuthView : View("Auth") {
 
         mainController.initCollections()
         mainController.getUsername()
+
         replaceWith<MainView>(transition = ViewTransition.FadeThrough(1.5.seconds, color = mainBackgroundColor))
+        if (!saveLogin.isSelected) {
+            loginField.clear()
+        }
+        passField.clear()
     }
 
     fun register() {

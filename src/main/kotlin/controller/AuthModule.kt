@@ -76,4 +76,10 @@ class AuthModule : ClientModule() {
             null
         }
     }
+
+    fun logout() {
+        super.fetchRequest("auth/logout", "POST", null)
+        Client.settoken("")
+        Client.setpassword("")
+    }
 }

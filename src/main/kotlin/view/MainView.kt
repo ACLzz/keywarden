@@ -4,6 +4,7 @@ import app.*
 import controller.Client
 import controller.MainController
 import fragment.*
+import javafx.concurrent.Task
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -17,6 +18,22 @@ class MainView : View("Keywarden") {
 
     private val passwordsTableFragment = PasswordsTableFragment()
     private val collectionsList = CollectionsListFragment(passwordsTableFragment::updatePasswords)
+    private var logoutTask = runAsync {}
+
+    override fun onDock() {
+        super.onDock()
+        logoutTask = runAsync {
+            Thread.sleep(Config.sessionTime)
+        }
+        logoutTask.ui {
+            logout()
+        }
+    }
+
+    override fun onUndock() {
+        super.onUndock()
+        logoutTask.cancel()
+    }
 
     private val mainRoot = hbox {
         style {
@@ -144,13 +161,6 @@ class MainView : View("Keywarden") {
 
         mainController.popNotify = { text, warning ->
             this += mainController.buildNotify(text, warning)
-        }
-
-        runAsync {
-            Thread.sleep(Config.sessionTime)
-        } ui {
-            println(Config.sessionTime)
-            logout()
         }
     }
 }
